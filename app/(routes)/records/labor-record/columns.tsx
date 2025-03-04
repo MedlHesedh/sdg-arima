@@ -79,8 +79,6 @@ export const columns: ColumnDef<Labor>[] = [
             >
               Edit Quantity
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View labor details</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )

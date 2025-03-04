@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import {
-  NotebookPen, BookOpen, Bot, Command, Frame, Container, Map, PieChart, Settings2,
+  NotebookPen,PresentationIcon, BookOpen, Bot, Command, Frame, Container, Map, PieChart,ViewIcon, Settings2,
   SquareTerminal,
 } from "lucide-react"
 
@@ -19,7 +19,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
+// ✅ Define `data` before using it in `useState`
 const data = {
   user: {
     name: "Medl Masangcap",
@@ -33,7 +33,7 @@ const data = {
       plan: "Enterprise",
     },
     {
-      name: "SDG Planning",
+      name: "SDG Platform",
       logo: NotebookPen,
       plan: "Startup",
     },
@@ -48,7 +48,6 @@ const data = {
       title: "Playground",
       url: "#",
       icon: SquareTerminal,
-     
       items: [
         { title: "History", url: "#" },
         { title: "Starred", url: "#" },
@@ -94,21 +93,11 @@ const data = {
       url: "/records",
       icon: Frame,
       items: [
-        { title: "Materials", url: "/records/materials" },
-        { title: "Materials Category", url: "/records/material-category" },
+        { title: "Material Record", url: "/records/materials" },
         { title: "Material History", url: "/records/material-history" },
-        { title: "Data Table", url: "/records/data-table" },
         { title: "Labor Record", url: "/records/labor-record" },
-        { title: "Labor History", url: "/records/labor-history" },
-      ],
-    },
-    {
-      title: "Forecasting",
-      url: "#",
-      icon: PieChart,
-      items: [
-        { title: "Material Cost Forecast", url: "#" },
-        { title: "Labor Cost Forecast", url: "#" },
+        { title: "Labor History", url: "/records/labor-history" }, 
+        { title: "Category", url: "/records/material-category" },
       ],
     },
     {
@@ -121,6 +110,23 @@ const data = {
       ],
     },
     {
+      title: "Tracking",
+      url: "#",
+      icon: Settings2,
+      items: [
+        { title: "Equipment Tracking", url: "#" },
+      ],
+    },
+    {
+      title: "Forecasting",
+      url: "#",
+      icon: PieChart,
+      items: [
+        { title: "Material Cost Forecast", url: "#" },
+        { title: "Labor Cost Forecast", url: "#" },
+      ],
+    },
+    {
       title: "Reports",
       url: "#",
       icon: BookOpen,
@@ -129,25 +135,17 @@ const data = {
         { title: "Project Planning Reports", url: "#" },
       ],
     },
-    {
-      title: "Tracking",
-      url: "#",
-      icon: Settings2,
-      items: [
-        { title: "Equipment Tracking", url: "#" },
-      ],
-    },
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Project Viewing",
       url: "#",
-      icon: Frame,
+      icon: ViewIcon,
     },
     {
-      name: "Sales & Marketing",
+      name: "Project Meeting",
       url: "#",
-      icon: PieChart,
+      icon: PresentationIcon,
     },
     {
       name: "Travel",
@@ -158,14 +156,20 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // ✅ `data` is now defined before using `useState`
+  const [selectedTeam, setSelectedTeam] = React.useState(data.teams[0].name)
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={data.teams} onTeamChange={(team) => setSelectedTeam(team.name)} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavResources items={data.navResources} />
+        {selectedTeam === "SDG Resources" ? (
+          <NavResources items={data.navResources} />
+        ) : (
+          <NavMain items={data.navMain} />
+        )}
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>

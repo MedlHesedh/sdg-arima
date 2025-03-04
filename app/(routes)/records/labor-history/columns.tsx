@@ -77,8 +77,7 @@ export const columns: ColumnDef<LaborHistory>[] = [
             >
               Edit Cost
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View labor history details</DropdownMenuItem>
+            
           </DropdownMenuContent>
         </DropdownMenu>
       )

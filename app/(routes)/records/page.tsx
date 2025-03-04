@@ -13,12 +13,11 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const breadcrumbs = [
-    { title: "Materials", url: "/records/materials" },
-    { title: "Materials Category", url: "/records/material-category" },
+    { title: "Material Record", url: "/records/materials" },
     { title: "Material History", url: "/records/material-history" },
-    
     { title: "Labor Record", url: "/records/labor-record" },
     { title: "Labor History", url: "/records/labor-history" },
+    { title: "Category", url: "/records/material-category" },
 ];
 
 const RecordsPage = () => {
@@ -47,10 +46,10 @@ const RecordsPage = () => {
                             <h2 className="mb-3 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">{breadcrumb.title}</h2>
                             <p className="mb-3 text-gray-500 dark:text-gray-400">
                                 {index === 0 && "Manage and track all materials efficiently."}
-                                {index === 1 && "Categorize materials for better organization."}
-                                {index === 2 && "View the history of material usage and changes."}
-                                {index === 3 && "Record labor details accurately and efficiently."}
-                                {index === 4 && "Access historical labor records with ease."}
+                                {index === 1 && "View the history of material usage and changes."}
+                                {index === 2 && "Record labor details accurately and efficiently."}
+                                {index === 3 && "View the history of labor usage and changes."}
+                                {index === 4 && "Categorize materials for better organization."}
                             </p>
                             <a href={breadcrumb.url} className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700">
                                 Learn more
