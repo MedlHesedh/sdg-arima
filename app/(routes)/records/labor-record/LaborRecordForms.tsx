@@ -42,7 +42,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog"
-import MyForm from "./addMaterial"
+import AddLaborForm from "./addLabor"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -86,8 +86,16 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm mr-2"
         />
+        {/* <Input
+          placeholder="Filter by quantity..."
+          value={(table.getColumn("quantity")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("quantity")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        /> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -117,17 +125,17 @@ export function DataTable<TData, TValue>({
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
-              <span className="mr-2">+</span> Add Materials
+              <span className="mr-2">+</span> Add Labor
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Material</DialogTitle>
+              <DialogTitle>Add Labor</DialogTitle>
               <DialogDescription>
-                Add materials here. Click Submit when you're done.
+                Add labor details here. Click Submit when you're done.
               </DialogDescription>
             </DialogHeader>
-            <MyForm />
+            <AddLaborForm />
           </DialogContent>
         </Dialog>
       </div>

@@ -1,6 +1,7 @@
-import LaborRecordForm from "./LaborRecordForm";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import { Labor, columns } from "./columns"
+import { DataTable } from "./LaborRecordForms"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -8,9 +9,35 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb"
 
-export default function LaborRecordPage() {
+async function getData(): Promise<Labor[]> {
+  // Fetch data from your API here.
+  return [
+    {
+      id: "1",
+      name: "Bricklaying",
+      quantity: "100",
+      category: "Masonry",
+    },
+    {
+      id: "2",
+      name: "Finishing",
+      quantity: "50",
+      category: "Carpetry",
+    },
+    {
+      id: "3",
+      name: "Crane Operator",
+      quantity: "200",
+      category: "Operators",
+    },
+  ]
+}
+
+export default async function LaborRecordPage() {
+  const data = await getData()
+
   return (
     <SidebarInset>
       {/* Page Header */}
@@ -33,9 +60,9 @@ export default function LaborRecordPage() {
       </header>
 
       {/* Page Content */}
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <LaborRecordForm /> {/* Labor Record Form is now inside the sidebar layout */}
+      <div className="container mx-auto py-10">
+        <DataTable columns={columns} data={data} />
       </div>
     </SidebarInset>
-  );
+  )
 }

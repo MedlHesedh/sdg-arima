@@ -37,51 +37,24 @@ export default function MaterialCategory() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Material Data Submitted: ", material);
+    console.log("Category Data Submitted: ", material);
   };
 
   return (
     <Card className="w-[350px] mx-auto p-6">
       <CardHeader>
-        <CardTitle>Add New Material</CardTitle>
-        <CardDescription>Fill in the details to add a new material.</CardDescription>
+        <CardTitle>Add New Category</CardTitle>
+        <CardDescription>Fill in the details to add a new category.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="name">Material Name</Label>
+            <Label htmlFor="name">Category Name</Label>
             <Input name="name" value={material.name} onChange={handleChange} required />
           </div>
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="description">Description (Size)</Label>
-            <Input name="description" value={material.description} onChange={handleChange} required />
-          </div>
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="unit">Unit (Measurement)</Label>
-            <Input name="unit" value={material.unit} onChange={handleChange} required />
-          </div>
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="category">Category</Label>
-            <Select onValueChange={handleCategoryChange} value={material.category}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.type}>
-                    {category.type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full">Add Material</Button>
+          <Button type="submit" className="w-full">Add Category</Button>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline">Cancel</Button>
-        <Button type="submit">Submit</Button>
-      </CardFooter>
     </Card>
   );
 }

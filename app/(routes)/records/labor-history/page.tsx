@@ -1,6 +1,7 @@
-import LaborHistoryForm from "./LaborHistoryForm";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import { LaborHistory, columns } from "./columns"
+import { DataTable } from "./LaborHistoryForms"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -8,9 +9,35 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb"
 
-export default function LaborHistoryPage() {
+async function getData(): Promise<LaborHistory[]> {
+  // Fetch data from your API here.
+  return [
+    {
+      id: "1",
+      name: "Bricklaying",
+      cost: "500",
+      date: "2023-01-01",
+    },
+    {
+      id: "2",
+      name: "Welding",
+      cost: "300",
+      date: "2023-02-01",
+    },
+    {
+      id: "3",
+      name: "Plastering",
+      cost: "700",
+      date: "2023-03-01",
+    },
+  ]
+}
+
+export default async function LaborHistoryPage() {
+  const data = await getData()
+
   return (
     <SidebarInset>
       {/* Page Header */}
@@ -33,9 +60,9 @@ export default function LaborHistoryPage() {
       </header>
 
       {/* Page Content */}
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <LaborHistoryForm /> {/* Labor History Form is now inside the sidebar layout */}
+      <div className="container mx-auto py-10">
+        <DataTable columns={columns} data={data} />
       </div>
     </SidebarInset>
-  );
+  )
 }
