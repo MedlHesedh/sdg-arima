@@ -1,26 +1,25 @@
-"use client"
+"use client";
 
-import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // This type is used to define the shape of our data.
 export type LaborHistory = {
-  id: string
-  name: string
-  cost: string
-  date: string
-}
+  id: string;
+  labor: string;
+  cost: string;
+  date: string;
+};
 
 export const columns: ColumnDef<LaborHistory>[] = [
   {
@@ -46,7 +45,7 @@ export const columns: ColumnDef<LaborHistory>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "labor",
     header: "Labor Name",
   },
   {
@@ -60,7 +59,7 @@ export const columns: ColumnDef<LaborHistory>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const laborHistory = row.original
+      const laborHistory = row.original;
 
       return (
         <DropdownMenu>
@@ -77,10 +76,9 @@ export const columns: ColumnDef<LaborHistory>[] = [
             >
               Edit Cost
             </DropdownMenuItem>
-            
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

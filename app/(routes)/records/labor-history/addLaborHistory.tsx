@@ -1,67 +1,79 @@
-"use client"
-import { useState } from "react"
-import { toast } from "sonner"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
+// Define the type for a labor history entry
+export type LaborHistory = {
+  id: string;
+  labor: string;
+  cost: string;
+  date: string;
+};
+
+// Define props for the component
+interface AddLaborHistoryFormProps {
+  onLaborAdded: (newLabor: LaborHistory) => void;
+}
+
+// Validation schema
 const formSchema = z.object({
-  name: z.string().min(1, "Labor Name is required"),
+  labor: z.string().min(1, "Labor Name is required"),
   cost: z.string().min(1, "Cost is required"),
   date: z.string().min(1, "Date is required"),
-  category: z.string().min(1, "Category is required"),
-})
+});
 
-export default function AddLaborHistoryForm() {
+export default function AddLaborHistoryForm({ onLaborAdded }: AddLaborHistoryFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      labor: "",
       cost: "",
       date: "",
-      category: "",
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values)
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      )
+      const newLabor: LaborHistory = {
+        id: crypto.randomUUID(), // Generate a unique ID for the new entry
+        ...values,
+      };
+
+      // Call the callback function to update the parent component
+      onLaborAdded(newLabor);
+
+      toast.success("Labor history added successfully!");
+
+      // Reset form fields
+      form.reset();
     } catch (error) {
-      console.error("Form submission error", error)
-      toast.error("Failed to submit the form. Please try again.")
+      console.error("Form submission error", error);
+      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full mx-auto py-10 px-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full mx-auto py-10 px-4"
+      >
         <FormField
           control={form.control}
-          name="name"
+          name="labor"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Labor Name</FormLabel>
@@ -92,38 +104,18 @@ export default function AddLaborHistoryForm() {
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
-                <Input placeholder="Enter date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Masonry">Masonry</SelectItem>
-                    <SelectItem value="Metal Works">Metal Works</SelectItem>
-                    <SelectItem value="Woodworks">Woodworks</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input type="date" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="col-span-1 md:col-span-2">
-          <Button type="submit" className="w-full">Submit</Button>
+          <Button type="submit" className="w-full">
+            Submit
+          </Button>
         </div>
       </form>
     </Form>
-  )
+  );
 }

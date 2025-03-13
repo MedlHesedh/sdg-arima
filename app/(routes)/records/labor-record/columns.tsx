@@ -1,28 +1,24 @@
-"use client"
+"use client";
 
-import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
+// Define Labor type
 export type Labor = {
-  id: string
-  name: string
-  quantity: string
-  category: string
-}
+  id: string;
+  labor: string; // ✅ Corrected column name
+  quantity: string;
+  category: string;
+};
 
 export const columns: ColumnDef<Labor>[] = [
   {
@@ -48,8 +44,8 @@ export const columns: ColumnDef<Labor>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
-    header: "Name",
+    accessorKey: "labor", // ✅ Fixed: Must match Supabase column
+    header: "Labor",
   },
   {
     accessorKey: "quantity",
@@ -62,7 +58,7 @@ export const columns: ColumnDef<Labor>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const labor = row.original
+      const labor = row.original;
 
       return (
         <DropdownMenu>
@@ -81,7 +77,7 @@ export const columns: ColumnDef<Labor>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

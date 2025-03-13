@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar"; // Ensure correct path
 import { SidebarProvider } from "@/components/ui/sidebar"; // Ensure correct path
+import { ClerkProvider } from '@clerk/nextjs';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,21 +22,25 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Add any head elements here */}
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} flex h-screen`}>
-        <SidebarProvider>
-          <div className="flex h-screen w-full">
-            {/* Sidebar */}
-            <AppSidebar />
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          {/* Add any head elements here */}
+        </head>
+        <body className={`${geistSans.variable} ${geistMono.variable} flex h-screen`}>
+          <SidebarProvider>
+            <div className="flex h-screen w-full">
+              {/* Sidebar */}
+              <AppSidebar />
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 overflow-auto">{children}</main>
-          </div>
-        </SidebarProvider>
-      </body>
-    </html>
+              {/* Main Content */}
+              <main className="flex-1 p-4 overflow-auto">
+                {children}
+              </main>
+            </div>
+          </SidebarProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

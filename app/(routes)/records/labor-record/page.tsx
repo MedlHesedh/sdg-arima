@@ -1,7 +1,10 @@
-import { Labor, columns } from "./columns"
-import { DataTable } from "./LaborRecordForms"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+"use client";
+
+import { useEffect, useState } from "react";
+import { Labor, columns } from "./columns"; // ✅ Use "Labor" instead of "LaborData"
+import { DataTable } from "./LaborRecordForms";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -9,34 +12,32 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
+import { supabase } from "@/utils/supabase/client";
 
-async function getData(): Promise<Labor[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "1",
-      name: "Bricklaying",
-      quantity: "100",
-      category: "Masonry",
-    },
-    {
-      id: "2",
-      name: "Finishing",
-      quantity: "50",
-      category: "Carpetry",
-    },
-    {
-      id: "3",
-      name: "Crane Operator",
-      quantity: "200",
-      category: "Operators",
-    },
-  ]
-}
+export default function LaborRecordPage() {
+  const [data, setData] = useState<Labor[]>([]);
 
-export default async function LaborRecordPage() {
-  const data = await getData()
+  // Fetch labor records on mount
+  useEffect(() => {
+    async function fetchLaborRecords() {
+      const { data, error } = await supabase.from("labor_adding").select("*");
+      if (data) {
+        setData(
+          data.map((item) => ({
+            id: item.id, 
+            labor: item.labor, // ✅ Use "labor" instead of "name"
+            quantity: item.quantity,
+            category: item.category,
+          }))
+        );
+      } else {
+        console.error("Error fetching labor records", error);
+      }
+    }
+  
+    fetchLaborRecords();
+  }, []);
 
   return (
     <SidebarInset>
@@ -64,5 +65,5 @@ export default async function LaborRecordPage() {
         <DataTable columns={columns} data={data} />
       </div>
     </SidebarInset>
-  )
+  );
 }

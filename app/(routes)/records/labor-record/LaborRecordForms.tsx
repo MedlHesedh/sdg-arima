@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,16 +12,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   Table,
@@ -30,9 +30,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
-import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogTrigger,
@@ -40,26 +39,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
-} from "@/components/ui/dialog"
-import AddLaborForm from "./addLabor"
+} from "@/components/ui/dialog";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+import AddLaborForm from "./addLabor";
+import { Labor } from "./columns";
+
+interface DataTableProps {
+  columns: ColumnDef<Labor>[];
+  data: Labor[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+export function DataTable({ columns, data }: DataTableProps) {
+  const [laborData, setLaborData] = React.useState<Labor[]>(data);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  React.useEffect(() => {
+    setLaborData(data);
+  }, [data]);
 
   const table = useReactTable({
-    data,
+    data: laborData,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -75,27 +77,27 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
-  })
+  });
+
+  // Function to handle new labor entry
+  const handleLaborAdded = (newLabor: Labor) => {
+    setLaborData((prevData) => [...prevData, newLabor]);
+  };
 
   return (
     <div>
       <div className="flex items-center py-4">
+        {/* Search Input */}
         <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter by labor name..."
+          value={(table.getColumn("labor")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm mr-2"
-        />
-        {/* <Input
-          placeholder="Filter by quantity..."
-          value={(table.getColumn("quantity")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("quantity")?.setFilterValue(event.target.value)
+            table.getColumn("labor")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
-        /> */}
+        />
+
+        {/* Column Visibility Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -106,22 +108,22 @@ export function DataTable<TData, TValue>({
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) =>
+                    column.toggleVisibility(!!value)
+                  }
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Add Labor Button */}
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
@@ -135,41 +137,35 @@ export function DataTable<TData, TValue>({
                 Add labor details here. Click Submit when you're done.
               </DialogDescription>
             </DialogHeader>
-            <AddLaborForm />
+            <AddLaborForm onLaborAdded={handleLaborAdded} />
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Selected Rows Info */}
       <div className="flex-1 text-sm text-muted-foreground">
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
+
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -187,6 +183,8 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
@@ -206,5 +204,5 @@ export function DataTable<TData, TValue>({
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -37,33 +37,13 @@ const data = {
       logo: NotebookPen,
       plan: "Startup",
     },
-    {
-      name: "SDG Forecasting",
-      logo: Command,
-      plan: "Free",
-    },
+    // {
+    //   name: "SDG Forecasting",
+    //   logo: Command,
+    //   plan: "Free",
+    // },
   ],
   navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      items: [
-        { title: "History", url: "#" },
-        { title: "Starred", url: "#" },
-        { title: "Settings", url: "#" },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        { title: "Genesis", url: "#" },
-        { title: "Explorer", url: "#" },
-        { title: "Quantum", url: "#" },
-      ],
-    },
     {
       title: "Documentation",
       url: "#",
@@ -73,17 +53,6 @@ const data = {
         { title: "Get Started", url: "#" },
         { title: "Tutorials", url: "#" },
         { title: "Changelog", url: "#" },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        { title: "General", url: "#" },
-        { title: "Team", url: "#" },
-        { title: "Billing", url: "#" },
-        { title: "Limits", url: "#" },
       ],
     },
   ],
@@ -97,7 +66,7 @@ const data = {
         { title: "Material History", url: "/records/material-history" },
         { title: "Labor Record", url: "/records/labor-record" },
         { title: "Labor History", url: "/records/labor-history" }, 
-        { title: "Category", url: "/records/material-category" },
+        // { title: "Category", url: "/records/material-category" },
       ],
     },
     {
@@ -105,25 +74,28 @@ const data = {
       url: "#",
       icon: Map,
       items: [
-        { title: "Project Dashboard", url: "#" },
-        { title: "Create Project Plan", url: "#" },
+        { title: "Project Dashboard", url: "/" },
+        { title: "Create Project Plan", url: "/projects/new" },
       ],
     },
     {
-      title: "Tracking",
-      url: "#",
+      title: "Tool Tracking",
+      url: "/tracking",
       icon: Settings2,
       items: [
-        { title: "Equipment Tracking", url: "#" },
+        { title: "Tools Inventory", url: "/tools" },
+        { title: "Tool Maintenance", url: "/tools/maintenance" },
+        { title: "Tool Utilization", url: "/tools/dashboard" },
+        { title: "QR Code Help", url: "/tools/help" },
       ],
     },
     {
       title: "Forecasting",
-      url: "#",
+      url: "/forecasting",
       icon: PieChart,
       items: [
-        { title: "Material Cost Forecast", url: "#" },
-        { title: "Labor Cost Forecast", url: "#" },
+        { title: "Forecasting Dashboard", url: "/forecasting" },
+        
       ],
     },
     {
@@ -147,11 +119,6 @@ const data = {
       url: "#",
       icon: PresentationIcon,
     },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
   ],
 }
 
@@ -161,6 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
+      
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} onTeamChange={(team) => setSelectedTeam(team.name)} />
       </SidebarHeader>
@@ -173,7 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

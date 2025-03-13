@@ -1,7 +1,10 @@
-import { LaborHistory, columns } from "./columns"
-import { DataTable } from "./LaborHistoryForms"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+"use client";
+
+import { useEffect, useState } from "react";
+import { LaborHistory, columns } from "./columns";
+import { DataTable } from "./LaborHistoryForms";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -9,34 +12,32 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
+import { supabase } from "@/utils/supabase/client";
 
-async function getData(): Promise<LaborHistory[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "1",
-      name: "Bricklaying",
-      cost: "500",
-      date: "2023-01-01",
-    },
-    {
-      id: "2",
-      name: "Welding",
-      cost: "300",
-      date: "2023-02-01",
-    },
-    {
-      id: "3",
-      name: "Plastering",
-      cost: "700",
-      date: "2023-03-01",
-    },
-  ]
-}
+export default function LaborHistoryPage() {
+  const [data, setData] = useState<LaborHistory[]>([]);
 
-export default async function LaborHistoryPage() {
-  const data = await getData()
+  // Fetch labor history records on mount
+  useEffect(() => {
+    async function fetchLaborHistory() {
+      const { data, error } = await supabase.from("labor_history").select("*");
+      if (data) {
+        setData(
+          data.map((item) => ({
+            id: item.id,
+            labor: item.labor,
+            cost: item.cost, // Changed from quantity
+            date: item.date, // Changed from category
+          }))
+        );
+      } else {
+        console.error("Error fetching labor history records", error);
+      }
+    }
+
+    fetchLaborHistory();
+  }, []);
 
   return (
     <SidebarInset>
@@ -64,5 +65,5 @@ export default async function LaborHistoryPage() {
         <DataTable columns={columns} data={data} />
       </div>
     </SidebarInset>
-  )
+  );
 }

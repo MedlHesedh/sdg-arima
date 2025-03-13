@@ -1,3 +1,5 @@
+"use client";
+
 import { Material, columns } from "./columns"
 import { DataTable } from "./MaterialHistory"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -10,87 +12,60 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { useEffect, useState } from "react"
+import { supabase } from "@/utils/supabase/client";
 
 async function getData(): Promise<Material[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-      name: "Material A",
-      cost: 100,
-      date: "2023-01-01",
-    },
-    {
-      id: "b1a2c3d4",
-      name: "Material B",
-      cost: 200,
-      date: "2023-02-01",
-    },
-    {
-      id: "c3d4e5f6",
-      name: "Material C",
-      cost: 150,
-      date: "2023-03-01",
-    },
-    {
-      id: "d4e5f6g7",
-      name: "Material D",
-      cost: 250,
-      date: "2023-04-01",
-    },
-    {
-      id: "e5f6g7h8",
-      name: "Material E",
-      cost: 300,
-      date: "2023-05-01",
-    },
-    {
-      id: "f6g7h8i9",
-      name: "Material F",
-      cost: 350,
-      date: "2023-06-01",
-    },
-    {
-      id: "g7h8i9j0",
-      name: "Material G",
-      cost: 400,
-      date: "2023-07-01",
-    },
-    {
-      id: "h8i9j0k1",
-      name: "Material H",
-      cost: 450,
-      date: "2023-08-01",
-    },
-    {
-      id: "i9j0k1l2",
-      name: "Material I",
-      cost: 500,
-      date: "2023-09-01",
-    },
-    {
-      id: "j0k1l2m3",
-      name: "Material J",
-      cost: 550,
-      date: "2023-10-01",
-    },
-    {
-      id: "k1l2m3n4",
-      name: "Material K",
-      cost: 600,
-      date: "2023-11-01",
-    },
-    {
-      id: "l2m3n4o5",
-      name: "Material L",
-      cost: 650,
-      date: "2023-12-01",
-    },
-  ]
+  const { data, error } = await supabase.from("material_history").select("*")
+  if (error) {
+    console.error("Error fetching data", error)
+    return []
+  }
+  return data.map((item) => ({
+    id: item.id,
+    name: item.material,
+    cost: item.cost ?? 0, // Ensure cost is always a number
+    date: item.date ?? "N/A", // Default if date is missing
+  }))
 }
 
-export default async function DemoPage() {
-  const data = await getData()
+export default function DemoPage() {
+  const [data, setData] = useState<Material[]>([])
+
+  useEffect(() => {
+    async function fetchMaterials() {
+      const materials = await getData()
+      setData(materials)
+    }
+
+    fetchMaterials()
+
+    // Setup Real-Time Subscription
+    const channel = supabase
+      .channel("material_adding")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "material_adding" },
+        (payload) => {
+          const newMaterial: Material = {
+            id: payload.new.id,
+            name: payload.new.material,
+            cost: payload.new.cost ?? 0,
+            date: payload.new.date ?? "N/A",
+          }
+          handleMaterialAdded(newMaterial)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel) // Properly clean up subscription
+    }
+  }, [])
+
+  function handleMaterialAdded(newMaterial: Material) {
+    setData((prevData) => [newMaterial, ...prevData])
+  }
 
   return (
     <SidebarInset>

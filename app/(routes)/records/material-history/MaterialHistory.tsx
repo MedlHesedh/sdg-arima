@@ -42,7 +42,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog"
-import MyForm from "./addMaterial"
+import MyForm from "./addMaterialHistory"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -76,6 +76,34 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   })
+
+  const handleDownloadCSV = () => {
+    const selectedRows = table.getSelectedRowModel().rows.map(row => row.original);
+    
+    // ✅ Prevent crash if no rows are selected
+    if (selectedRows.length === 0) {
+      alert("No materials selected for download.");
+      return;
+    }
+  
+    // ✅ Ensure selectedRows[0] is an object before calling Object.keys
+    const headers = Object.keys(selectedRows[0] as object);
+    
+    const csvContent = [
+      headers.join(","), // ✅ Safe header extraction
+      ...selectedRows.map(row => 
+        headers.map(header => (row as Record<string, any>)[header]).join(",") // ✅ Safe data access
+      )
+    ].join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "selected_material_history.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div>
@@ -127,9 +155,15 @@ export function DataTable<TData, TValue>({
                 Add materials here. Click Submit when you're done.
               </DialogDescription>
             </DialogHeader>
-            <MyForm />
+            <MyForm onMaterialHistoryAdded={(newMaterialHistory) => {
+              // handle the new material history addition
+              console.log("New material history added:", newMaterialHistory);
+            }} />
           </DialogContent>
         </Dialog>
+        <Button onClick={handleDownloadCSV} className="ml-2" disabled={Object.keys(rowSelection).length === 0}>
+          Download Selected
+        </Button>
       </div>
       <div className="flex-1 text-sm text-muted-foreground">
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
