@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { LaborHistory, columns } from "./columns";
 import { DataTable } from "./LaborHistoryForms";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -15,33 +15,59 @@ import {
 } from "@/components/ui/breadcrumb";
 import { supabase } from "@/utils/supabase/client";
 
+// Fetch labor history records ordered by created_at (descending)
+async function getData(): Promise<LaborHistory[]> {
+  const { data, error } = await supabase
+    .from("labor_history")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("Error fetching labor history", error);
+    return [];
+  }
+
+  return data.map((item) => ({
+    id: item.id,
+    labor: item.labor,
+    cost: item.cost ?? 0,
+    // "date" is displayed, but "created_at" is used only for ordering
+    date: item.date ?? "N/A",
+  }));
+}
+
 export default function LaborHistoryPage() {
   const [data, setData] = useState<LaborHistory[]>([]);
 
-  // Fetch labor history records on mount
-  useEffect(() => {
-    async function fetchLaborHistory() {
-      const { data, error } = await supabase.from("labor_history").select("*");
-      if (data) {
-        setData(
-          data.map((item) => ({
-            id: item.id,
-            labor: item.labor,
-            cost: item.cost, // Changed from quantity
-            date: item.date, // Changed from category
-          }))
-        );
-      } else {
-        console.error("Error fetching labor history records", error);
-      }
-    }
-
-    fetchLaborHistory();
+  // Reusable function to fetch data
+  const fetchLaborHistory = useCallback(async () => {
+    const records = await getData();
+    setData(records);
   }, []);
+
+  useEffect(() => {
+    // Initial fetch
+    fetchLaborHistory();
+
+    // Real-time subscription to labor_history inserts
+    const channel = supabase
+      .channel("labor_history")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "labor_history" },
+        () => {
+          // Re-fetch the entire dataset whenever a new row is inserted
+          fetchLaborHistory();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchLaborHistory]);
 
   return (
     <SidebarInset>
-      {/* Page Header */}
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
@@ -60,7 +86,6 @@ export default function LaborHistoryPage() {
         </div>
       </header>
 
-      {/* Page Content */}
       <div className="container mx-auto py-10">
         <DataTable columns={columns} data={data} />
       </div>

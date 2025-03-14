@@ -11,13 +11,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import EditLaborDialog from "./EditLaborDialog";
 
 // Define Labor type
 export type Labor = {
   id: string;
-  labor: string; // ✅ Corrected column name
-  quantity: string;
+  labor: string;
   category: string;
+  quantity: number;
+  cost: number;
+  total_cost: number;
+  created_at: string;
 };
 
 export const columns: ColumnDef<Labor>[] = [
@@ -44,40 +48,64 @@ export const columns: ColumnDef<Labor>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "labor", // ✅ Fixed: Must match Supabase column
+    accessorKey: "labor",
     header: "Labor",
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
   },
   {
     accessorKey: "category",
     header: "Category",
   },
   {
+    accessorKey: "quantity",
+    header: "Quantity",
+    cell: ({ row }) => {
+      const quantity = row.original.quantity;
+      return <div className="text-center font-medium">{quantity}</div>;
+    },
+  },
+  {
+    accessorKey: "cost",
+    header: "Cost",
+    cell: ({ row }) => {
+      const cost = row.original.cost;
+      return `₱${
+        cost !== null && cost !== undefined ? cost.toFixed(2) : "0.00"
+      }`;
+    },
+  },
+  {
+    accessorKey: "total_cost",
+    header: "Total Cost",
+    cell: ({ row }) => {
+      const totalCost = row.original.total_cost;
+      return `₱${
+        totalCost !== null && totalCost !== undefined
+          ? totalCost.toFixed(2)
+          : "0.00"
+      }`;
+    },
+  },
+  {
+    accessorKey: "created_at",
+    header: "Date Added",
+    cell: ({ row }) => {
+      const utcDate = new Date(row.original.created_at);
+      // Convert to local time if desired
+      const localDate = new Date(
+        utcDate.getTime() - utcDate.getTimezoneOffset() * 60000
+      );
+      return localDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
       const labor = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(labor.id)}
-            >
-              Edit Quantity
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <EditLaborDialog labor={labor} />;
     },
   },
 ];

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,16 +12,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   Table,
@@ -30,33 +30,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-
-import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from "@/components/ui/dialog"
-import MyForm from "./addMaterialHistory"
+} from "@/components/ui/table";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -75,27 +66,23 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   const handleDownloadCSV = () => {
-    const selectedRows = table.getSelectedRowModel().rows.map(row => row.original);
-    
-    // ✅ Prevent crash if no rows are selected
+    const selectedRows = table
+      .getSelectedRowModel()
+      .rows.map((row) => row.original);
     if (selectedRows.length === 0) {
       alert("No materials selected for download.");
       return;
     }
-  
-    // ✅ Ensure selectedRows[0] is an object before calling Object.keys
     const headers = Object.keys(selectedRows[0] as object);
-    
     const csvContent = [
-      headers.join(","), // ✅ Safe header extraction
-      ...selectedRows.map(row => 
-        headers.map(header => (row as Record<string, any>)[header]).join(",") // ✅ Safe data access
-      )
+      headers.join(","),
+      ...selectedRows.map((row) =>
+        headers.map((header) => (row as Record<string, any>)[header]).join(",")
+      ),
     ].join("\n");
-  
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -103,7 +90,7 @@ export function DataTable<TData, TValue>({
     a.download = "selected_material_history.csv";
     a.click();
     URL.revokeObjectURL(url);
-  }
+  };
 
   return (
     <div>
@@ -138,30 +125,15 @@ export function DataTable<TData, TValue>({
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
-              <span className="mr-2">+</span> Add Materials
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Material</DialogTitle>
-              <DialogDescription>
-                Add materials here. Click Submit when you're done.
-              </DialogDescription>
-            </DialogHeader>
-            <MyForm onMaterialHistoryAdded={(newMaterialHistory) => {
-              // handle the new material history addition
-              console.log("New material history added:", newMaterialHistory);
-            }} />
-          </DialogContent>
-        </Dialog>
-        <Button onClick={handleDownloadCSV} className="ml-2" disabled={Object.keys(rowSelection).length === 0}>
+        <Button
+          onClick={handleDownloadCSV}
+          className="ml-2"
+          disabled={Object.keys(rowSelection).length === 0}
+        >
           Download Selected
         </Button>
       </div>
@@ -174,18 +146,16 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -198,14 +168,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -232,5 +208,5 @@ export function DataTable<TData, TValue>({
         </Button>
       </div>
     </div>
-  )
+  );
 }

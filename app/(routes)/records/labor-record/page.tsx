@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Labor, columns } from "./columns"; // ✅ Use "Labor" instead of "LaborData"
+import { useCallback, useEffect, useState } from "react";
+import { Labor, columns } from "./columns";
 import { DataTable } from "./LaborRecordForms";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -17,27 +17,37 @@ import { supabase } from "@/utils/supabase/client";
 
 export default function LaborRecordPage() {
   const [data, setData] = useState<Labor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Dedicated fetch function that can be called after editing or adding
+  const fetchLaborRecords = useCallback(async () => {
+    const { data: laborData, error } = await supabase
+      .from("labor_adding")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (laborData) {
+      setData(
+        laborData.map((item) => ({
+          id: item.id,
+          labor: item.labor,
+          category: item.category,
+          quantity: item.quantity,
+          cost: item.cost,
+          total_cost: item.total_cost,
+          created_at: item.created_at,
+        }))
+      );
+    } else {
+      console.error("Error fetching labor records:", error);
+    }
+    setLoading(false);
+  }, []);
 
   // Fetch labor records on mount
   useEffect(() => {
-    async function fetchLaborRecords() {
-      const { data, error } = await supabase.from("labor_adding").select("*");
-      if (data) {
-        setData(
-          data.map((item) => ({
-            id: item.id, 
-            labor: item.labor, // ✅ Use "labor" instead of "name"
-            quantity: item.quantity,
-            category: item.category,
-          }))
-        );
-      } else {
-        console.error("Error fetching labor records", error);
-      }
-    }
-  
     fetchLaborRecords();
-  }, []);
+  }, [fetchLaborRecords]);
 
   return (
     <SidebarInset>
@@ -62,7 +72,12 @@ export default function LaborRecordPage() {
 
       {/* Page Content */}
       <div className="container mx-auto py-10">
-        <DataTable columns={columns} data={data} />
+        <DataTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          refreshLabor={fetchLaborRecords}
+        />
       </div>
     </SidebarInset>
   );

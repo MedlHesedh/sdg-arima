@@ -31,17 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-
-import AddLaborForm from "./addLaborHistory"; // Updated import
 import { LaborHistory } from "./columns"; // Updated import
 
 interface DataTableProps {
@@ -122,24 +111,6 @@ export function DataTable({ columns, data }: DataTableProps) {
               ))}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Add Labor Button */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
-              <span className="mr-2">+</span> Add Labor
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Labor</DialogTitle>
-              <DialogDescription>
-                Add labor history details here. Click Submit when you're done.
-              </DialogDescription>
-            </DialogHeader>
-            <AddLaborForm onLaborAdded={handleLaborAdded} />
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Selected Rows Info */}
