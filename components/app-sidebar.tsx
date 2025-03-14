@@ -94,7 +94,7 @@ const data = {
       url: "/forecasting",
       icon: PieChart,
       items: [
-        { title: "Forecasting Dashboard", url: "/forecasting" },
+        { title: "Forecasting Dashboard", url: "/analytics" },
         
       ],
     },
@@ -113,6 +113,10 @@ const data = {
       name: "Project Viewing",
       url: "#",
       icon: ViewIcon,
+      items: [
+        { title: "View Projects", url: "/project-viewing" },
+        { title: "Project Planning Reports", url: "#" },
+      ],
     },
     {
       name: "Project Meeting",
