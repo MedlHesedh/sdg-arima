@@ -1,9 +1,8 @@
-"use client"; // Convert to client component
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Material, columns } from "./columns";
 import { DataTable } from "./MaterialsForm";
-// import MyForm from "./addMaterial"; // Import form component
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,37 +14,52 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { supabase } from "@/utils/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-export default function DemoPage() {
+export default function MaterialRecordPage() {
   const [data, setData] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch materials on mount
-  useEffect(() => {
-    async function fetchMaterials() {
-      const { data, error } = await supabase.from("material_adding").select("*");
-      if (data) {
-        setData(
-          data.map((item) => ({
-            id: item.id,
-            name: item.material,
-            unitOfMeasurement: item.unit,
-            category: item.category,
-            quantity: item.quantity,
-          }))
-        );
-      } else {
-        console.error("Error fetching data", error);
-      }
+  // Dedicated fetch function that refreshes the parent's data
+  const fetchMaterials = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("material_adding")
+      .select("*")
+      .order("id", { ascending: false });
+    if (data) {
+      setData(
+        data.map((item) => ({
+          id: item.id,
+          name: item.material,
+          unitOfMeasurement: item.unit,
+          cost: item.cost,
+          total_cost: item.total_cost,
+          category: item.category,
+          quantity: item.quantity,
+          created_at: item.created_at,
+        }))
+      );
+    } else {
+      console.error("Error fetching data:", error);
     }
-
-    fetchMaterials();
+    setLoading(false);
   }, []);
 
-  // Function to handle real-time material updates
+  // Initial data fetch
+  useEffect(() => {
+    fetchMaterials();
+  }, [fetchMaterials]);
 
   return (
     <SidebarInset>
-      {/* Page Header */}
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
@@ -64,10 +78,39 @@ export default function DemoPage() {
         </div>
       </header>
 
-      {/* Page Content */}
       <div className="container mx-auto py-10">
-        {/* <MyForm onMaterialAdded={handleMaterialAdded} /> Form for adding new materials */}
-        <DataTable columns={columns} data={data} />
+        {loading ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((col) => (
+                    <TableHead key={col.accessorKey || col.id}>
+                      <Skeleton className="h-6 w-24" />
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 3 }).map((_, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columns.map((_, colIndex) => (
+                      <TableCell key={colIndex}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={data}
+            refreshMaterials={fetchMaterials}
+          />
+        )}
       </div>
     </SidebarInset>
   );

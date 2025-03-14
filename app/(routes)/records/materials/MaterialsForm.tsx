@@ -13,8 +13,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import {
   Table,
   TableBody,
@@ -31,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import {
   Dialog,
   DialogTrigger,
@@ -40,29 +38,55 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-
-import AddMaterialForm from "./addMaterial"; // Update to your actual form component
+import AddMaterial from "./AddMaterial";
+import EditMaterialDialog from "./EditMaterialsForm"; // We need this to override the actions column
 import { Material } from "./columns";
 
 interface DataTableProps {
   columns: ColumnDef<Material>[];
   data: Material[];
+  refreshMaterials: () => void;
 }
 
-export function DataTable({ columns, data }: DataTableProps) {
-  const [materialsData, setMaterialsData] = React.useState<Material[]>(data);
+export function DataTable({ columns, data, refreshMaterials }: DataTableProps) {
+  // State for table interactions
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [open, setOpen] = useState(false);
 
-  React.useEffect(() => {
-    setMaterialsData(data);
-  }, [data]);
+  // Override the "actions" column so that we can call refreshMaterials when a material is updated
+  const updatedColumns = React.useMemo(() => {
+    return columns.map((col) => {
+      if (col.id === "actions") {
+        return {
+          ...col,
+          cell: ({ row }: any) => {
+            const material = row.original;
+            return (
+              <EditMaterialDialog
+                material={material}
+                onMaterialUpdated={() => {
+                  // Re-fetch data so the table reflects the updated cost
+                  refreshMaterials();
+                }}
+              />
+            );
+          },
+        };
+      }
+      return col;
+    });
+  }, [columns, refreshMaterials]);
 
+  // Create the table instance using the updated columns
   const table = useReactTable({
-    data: materialsData,
-    columns,
+    data,
+    columns: updatedColumns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -79,15 +103,20 @@ export function DataTable({ columns, data }: DataTableProps) {
     },
   });
 
-  // Function to handle new material entry
-  const handleMaterialAdded = (newMaterial: Material) => {
-    setMaterialsData((prevData) => [...prevData, newMaterial]);
+  // Reset page index when new data is received
+  React.useEffect(() => {
+    table.resetPageIndex();
+  }, [data, table]);
+
+  // When a new material is added, trigger a refresh from the parent
+  const handleMaterialAdded = () => {
+    refreshMaterials();
+    setOpen(false);
   };
 
   return (
     <div>
       <div className="flex items-center py-4">
-        {/* Search Input */}
         <Input
           placeholder="Filter by material name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -97,7 +126,6 @@ export function DataTable({ columns, data }: DataTableProps) {
           className="max-w-sm"
         />
 
-        {/* Column Visibility Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -113,9 +141,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                   key={column.id}
                   className="capitalize"
                   checked={column.getIsVisible()}
-                  onCheckedChange={(value) =>
-                    column.toggleVisibility(!!value)
-                  }
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
                   {column.id}
                 </DropdownMenuCheckboxItem>
@@ -123,10 +149,12 @@ export function DataTable({ columns, data }: DataTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Add Material Button */}
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
+            <Button
+              variant="outline"
+              className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white"
+            >
               <span className="mr-2">+</span> Add Material
             </Button>
           </DialogTrigger>
@@ -137,18 +165,16 @@ export function DataTable({ columns, data }: DataTableProps) {
                 Add material details here. Click Submit when you're done.
               </DialogDescription>
             </DialogHeader>
-            <AddMaterialForm onMaterialAdded={handleMaterialAdded} />
+            <AddMaterial onMaterialAdded={handleMaterialAdded} />
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Selected Rows Info */}
       <div className="flex-1 text-sm text-muted-foreground">
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
 
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -156,7 +182,10 @@ export function DataTable({ columns, data }: DataTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -168,14 +197,20 @@ export function DataTable({ columns, data }: DataTableProps) {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={updatedColumns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -184,11 +219,11 @@ export function DataTable({ columns, data }: DataTableProps) {
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
@@ -197,6 +232,7 @@ export function DataTable({ columns, data }: DataTableProps) {
         <Button
           variant="outline"
           size="sm"
+          className="cursor-pointer"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >

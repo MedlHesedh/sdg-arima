@@ -1,9 +1,9 @@
 "use client";
 
-import { Material, columns } from "./columns"
-import { DataTable } from "./MaterialHistory"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+import { Material, columns } from "./columns";
+import { DataTable } from "./MaterialHistory";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -11,65 +11,63 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { useEffect, useState } from "react"
+} from "@/components/ui/breadcrumb";
+import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 
+// Fetch from material_history, ordering by created_at DESC, still using "date" in the UI
 async function getData(): Promise<Material[]> {
-  const { data, error } = await supabase.from("material_history").select("*")
+  const { data, error } = await supabase
+    .from("material_history")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   if (error) {
-    console.error("Error fetching data", error)
-    return []
+    console.error("Error fetching data", error);
+    return [];
   }
+
   return data.map((item) => ({
     id: item.id,
     name: item.material,
-    cost: item.cost ?? 0, // Ensure cost is always a number
-    date: item.date ?? "N/A", // Default if date is missing
-  }))
+    cost: item.cost ?? 0,
+    date: item.date ?? "N/A",
+  }));
 }
 
 export default function DemoPage() {
-  const [data, setData] = useState<Material[]>([])
+  const [data, setData] = useState<Material[]>([]);
+
+  // Reusable fetch function
+  async function fetchMaterials() {
+    const materials = await getData();
+    setData(materials);
+  }
 
   useEffect(() => {
-    async function fetchMaterials() {
-      const materials = await getData()
-      setData(materials)
-    }
+    // Initial fetch
+    fetchMaterials();
 
-    fetchMaterials()
-
-    // Setup Real-Time Subscription
+    // Real-time subscription to material_adding
     const channel = supabase
       .channel("material_adding")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "material_adding" },
-        (payload) => {
-          const newMaterial: Material = {
-            id: payload.new.id,
-            name: payload.new.material,
-            cost: payload.new.cost ?? 0,
-            date: payload.new.date ?? "N/A",
-          }
-          handleMaterialAdded(newMaterial)
+        () => {
+          // Re-fetch the entire dataset whenever a new row is inserted
+          fetchMaterials();
         }
       )
-      .subscribe()
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(channel) // Properly clean up subscription
-    }
-  }, [])
-
-  function handleMaterialAdded(newMaterial: Material) {
-    setData((prevData) => [newMaterial, ...prevData])
-  }
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
     <SidebarInset>
-      {/* Page Header */}
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
@@ -88,10 +86,9 @@ export default function DemoPage() {
         </div>
       </header>
 
-      {/* Page Content */}
       <div className="container mx-auto py-10">
         <DataTable columns={columns} data={data} />
       </div>
     </SidebarInset>
-  )
+  );
 }

@@ -22,7 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import EditLaborDialog from "./EditLaborDialog";
 import {
   Table,
   TableBody,
@@ -43,26 +43,60 @@ import {
 
 import AddLaborForm from "./addLabor";
 import { Labor } from "./columns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DataTableProps {
   columns: ColumnDef<Labor>[];
   data: Labor[];
+  loading: boolean;
+  refreshLabor: () => void;
 }
 
-export function DataTable({ columns, data }: DataTableProps) {
+export function DataTable({
+  columns,
+  data,
+  loading,
+  refreshLabor,
+}: DataTableProps) {
   const [laborData, setLaborData] = React.useState<Labor[]>(data);
+
+  // For controlling table states
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // For controlling the "Add Labor" dialog
+  const [open, setOpen] = React.useState(false);
+  const updatedColumns = React.useMemo(() => {
+    return columns.map((col) => {
+      if (col.id === "actions") {
+        return {
+          ...col,
+          cell: ({ row }: any) => {
+            const labor = row.original;
+            return (
+              <EditLaborDialog
+                labor={labor}
+                onLaborUpdated={() => refreshLabor()}
+              />
+            );
+          },
+        };
+      }
+      return col;
+    });
+  }, [columns, refreshLabor]);
   React.useEffect(() => {
     setLaborData(data);
   }, [data]);
 
   const table = useReactTable({
     data: laborData,
-    columns,
+    columns: updatedColumns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -79,9 +113,40 @@ export function DataTable({ columns, data }: DataTableProps) {
     },
   });
 
-  // Function to handle new labor entry
-  const handleLaborAdded = (newLabor: Labor) => {
-    setLaborData((prevData) => [...prevData, newLabor]);
+  // If loading, show a skeleton table
+  if (loading) {
+    return (
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((col) => (
+                <TableHead key={col.id || col.accessorKey}>
+                  <Skeleton className="h-6 w-24" />
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 3 }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((_, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
+  // Called when a new labor entry is successfully added
+  const handleLaborAdded = () => {
+    refreshLabor();
+    setOpen(false); // <--- Auto-close dialog on success
   };
 
   return (
@@ -113,9 +178,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                   key={column.id}
                   className="capitalize"
                   checked={column.getIsVisible()}
-                  onCheckedChange={(value) =>
-                    column.toggleVisibility(!!value)
-                  }
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
                   {column.id}
                 </DropdownMenuCheckboxItem>
@@ -123,10 +186,13 @@ export function DataTable({ columns, data }: DataTableProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Add Labor Button */}
-        <Dialog>
+        {/* Add Labor Button & Dialog */}
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white">
+            <Button
+              variant="outline"
+              className="ml-2 bg-black text-white hover:bg-gray-700 hover:text-white"
+            >
               <span className="mr-2">+</span> Add Labor
             </Button>
           </DialogTrigger>
@@ -156,7 +222,10 @@ export function DataTable({ columns, data }: DataTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -168,14 +237,20 @@ export function DataTable({ columns, data }: DataTableProps) {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={updatedColumns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
