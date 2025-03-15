@@ -1,20 +1,64 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { z } from "zod";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
+import { AlertCircle, CalendarIcon, CircleCheckBig } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/utils/supabase/client";
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+// ---------------------------------------
+// 1) Define your Zod schema
+// ---------------------------------------
+const projectSchema = z.object({
+  // Required fields
+  name: z.string().min(1, "Project name is required"),
+  type: z.string().min(1, "Project type is required"),
+  client: z.string().min(1, "Client name is required"),
+  date_requested: z.string().min(1, "Date requested is required"),
+  target_date: z.string().min(1, "Target date is required"),
+
+  // Optional field
+  description: z.string().optional(),
+});
+
+type ProjectFormInputs = z.infer<typeof projectSchema>;
 
 const projectTypes = [
   "Two-storey Residence",
@@ -22,195 +66,421 @@ const projectTypes = [
   "Two-storey Residential with Roofdeck",
   "Three-Storey with Eight Bedrooms Residence",
   "Bungalow",
-]
+];
 
 type ProjectFormProps = {
   project?: {
-    id: string
-    name: string
-    type: string
-    client: string
-    dateRequested: string
-    targetDate: string
-    status: string
-  }
-  isEditing?: boolean
-}
+    id: string;
+    name: string;
+    type: string;
+    client: string;
+    dateRequested: string;
+    targetDate: string;
+    description?: string;
+    status: string;
+  };
+  isEditing?: boolean;
+};
+
+type AlertState = {
+  type: "success" | "error" | null;
+  message: string;
+};
 
 export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
-  const router = useRouter()
-  const [name, setName] = useState(project?.name || "")
-  const [type, setType] = useState(project?.type || "")
-  const [client, setClient] = useState(project?.client || "")
-  const [dateRequested, setDateRequested] = useState<Date | undefined>(
-    project?.dateRequested ? new Date(project.dateRequested) : undefined,
-  )
-  const [targetDate, setTargetDate] = useState<Date | undefined>(
-    project?.targetDate ? new Date(project.targetDate) : undefined,
-  )
-  const [status, setStatus] = useState(project?.status || "Planning")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  // We track a separate `status` only if editing
+  const [status, setStatus] = useState(project?.status || "Planning");
+  const [alertState, setAlertState] = useState<AlertState>({
+    type: null,
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ---------------------------------------
+  // Auto-clear alerts after 5 seconds
+  // ---------------------------------------
+  useEffect(() => {
+    if (alertState.type) {
+      const timer = setTimeout(() => {
+        setAlertState({ type: null, message: "" });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [alertState]);
+
+  // ---------------------------------------
+  // 2) Initialize react-hook-form
+  // ---------------------------------------
+  const form = useForm<ProjectFormInputs>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      name: project?.name ?? "",
+      type: project?.type ?? "",
+      client: project?.client ?? "",
+      description: project?.description ?? "",
+      // Store dates as strings for easy validation
+      date_requested: project?.dateRequested
+        ? new Date(project.dateRequested).toISOString()
+        : "",
+      target_date: project?.targetDate
+        ? new Date(project.targetDate).toISOString()
+        : "",
+    },
+  });
+
+  // ---------------------------------------
+  // 3) Handle form submission
+  // ---------------------------------------
+  const onSubmit: SubmitHandler<ProjectFormInputs> = async (values) => {
+    setIsSubmitting(true);
+    setAlertState({ type: null, message: "" });
 
     try {
-      // Prepare the project data
-      const projectData = {
-        name,
-        type,
-        client,
-        dateRequested: dateRequested ? dateRequested.toISOString() : undefined,
-        targetDate: targetDate ? targetDate.toISOString() : undefined,
-        status: status || "Planning",
+      let supabaseResponse;
+      if (isEditing && project?.id) {
+        // Update existing project
+        supabaseResponse = await supabase
+          .from("projects")
+          .update({
+            name: values.name,
+            type: values.type,
+            client: values.client,
+            description: values.description ?? "",
+            date_requested: values.date_requested,
+            target_date: values.target_date,
+            status, // keep existing status or update from dropdown
+          })
+          .eq("id", project.id)
+          .select()
+          .single();
+      } else {
+        // Insert new project
+        supabaseResponse = await supabase
+          .from("projects")
+          .insert({
+            name: values.name,
+            type: values.type,
+            client: values.client,
+            description: values.description ?? "",
+            date_requested: values.date_requested,
+            target_date: values.target_date,
+            status: "Planning", // default to "Planning" for new
+          })
+          .select()
+          .single();
       }
 
-      // In a real app, you would submit to an API here
-      // For example:
-      // const response = await fetch('/api/projects', {
-      //   method: isEditing ? 'PUT' : 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(isEditing ? { id: project?.id, ...projectData } : projectData)
-      // })
+      const { error } = supabaseResponse;
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      // Simulate API call with a delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Success
+      setAlertState({
+        type: "success",
+        message: isEditing
+          ? "Project updated successfully!"
+          : "Project created successfully!",
+      });
 
-      // Redirect to the projects page after successful submission
-      router.push("/projects")
+      // Reset the form if creating new
+      if (!isEditing) {
+        form.reset();
+      }
     } catch (error) {
-      console.error("Error submitting project:", error)
+      setAlertState({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred. Please try again.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
+  // Helper to parse the stored date string for Calendar display
+  const getDateOrUndefined = (dateString: string) => {
+    try {
+      return dateString ? new Date(dateString) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  // ---------------------------------------
+  // 4) Build the form UI
+  // ---------------------------------------
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader>
-          <CardTitle>{isEditing ? "Edit Project" : "Create New Project"}</CardTitle>
-          <CardDescription>
-            {isEditing
-              ? "Update the details of your existing project"
-              : "Fill in the details to create a new construction project"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Project Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter project name"
-              required
+    <Form {...form}>
+      {/* Top-level success/error alerts with fade-in transition */}
+      {alertState.type === "success" && (
+        <Alert
+          variant="default"
+          className="absolute top-4 right-4 w-fit border-green-600 text-green-600 transition-opacity duration-300"
+        >
+          <CircleCheckBig className="h-4 w-4 stroke-green-600" />
+          <div className="flex flex-col pr-10">
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{alertState.message}</AlertDescription>
+          </div>
+        </Alert>
+      )}
+      {alertState.type === "error" && (
+        <Alert
+          variant="destructive"
+          className="mb-4 transition-opacity duration-300"
+        >
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{alertState.message}</AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {isEditing ? "Edit Project" : "Create New Project"}
+            </CardTitle>
+            <CardDescription>
+              {isEditing
+                ? "Update the details of your existing project"
+                : "Fill in the details to create a new construction project"}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Project Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter project name"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="type">Project Type</Label>
-            <Select value={type} onValueChange={setType} required>
-              <SelectTrigger id="type">
-                <SelectValue placeholder="Select project type" />
-              </SelectTrigger>
-              <SelectContent>
-                {projectTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="client">Client Name</Label>
-            <Input
-              id="client"
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
-              placeholder="Enter client name"
-              required
+            {/* Project Type */}
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Type</FormLabel>
+                  <Select
+                    disabled={isSubmitting}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select project type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {projectTypes.map((typeOption) => (
+                        <SelectItem key={typeOption} value={typeOption}>
+                          {typeOption}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="dateRequested">Date Requested</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="dateRequested"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateRequested && "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRequested ? format(dateRequested, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dateRequested} onSelect={setDateRequested} initialFocus />
-                </PopoverContent>
-              </Popover>
+            {/* Client Name */}
+            <FormField
+              control={form.control}
+              name="client"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter client name"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Description (optional) */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <textarea
+                      className="border p-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                      rows={4}
+                      placeholder="Enter project description"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Dates: date_requested & target_date */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date Requested */}
+              <FormField
+                control={form.control}
+                name="date_requested"
+                render={({ field }) => {
+                  const dateValue = getDateOrUndefined(field.value);
+                  return (
+                    <FormItem>
+                      <FormLabel>Date Requested</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !dateValue && "text-muted-foreground"
+                            )}
+                            disabled={isSubmitting}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateValue
+                              ? format(dateValue, "PPP")
+                              : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={dateValue}
+                            onSelect={(selectedDate) => {
+                              field.onChange(
+                                selectedDate ? selectedDate.toISOString() : ""
+                              );
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              {/* Target Date */}
+              <FormField
+                control={form.control}
+                name="target_date"
+                render={({ field }) => {
+                  const dateValue = getDateOrUndefined(field.value);
+                  const requestedDate = getDateOrUndefined(
+                    form.getValues("date_requested")
+                  );
+                  return (
+                    <FormItem>
+                      <FormLabel>Target Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !dateValue && "text-muted-foreground"
+                            )}
+                            disabled={isSubmitting}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateValue
+                              ? format(dateValue, "PPP")
+                              : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={dateValue}
+                            onSelect={(selectedDate) => {
+                              field.onChange(
+                                selectedDate ? selectedDate.toISOString() : ""
+                              );
+                            }}
+                            initialFocus
+                            disabled={(date) =>
+                              requestedDate ? date < requestedDate : false
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="targetDate">Target Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="targetDate"
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !targetDate && "text-muted-foreground")}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {targetDate ? format(targetDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={targetDate}
-                    onSelect={setTargetDate}
-                    initialFocus
-                    disabled={(date) => (dateRequested ? date < dateRequested : false)}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
+            {/* Status (only if editing) */}
+            {isEditing && (
+              <div className="space-y-2">
+                <FormLabel htmlFor="status">Project Status</FormLabel>
+                <Select
+                  value={status}
+                  onValueChange={setStatus}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Planning">Planning</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </CardContent>
 
-          {isEditing && (
-            <div className="space-y-2">
-              <Label htmlFor="status">Project Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Planning">Planning</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" type="button" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : isEditing ? "Update Project" : "Create Project"}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
-  )
+          <CardFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Saving..."
+                : isEditing
+                ? "Update Project"
+                : "Create Project"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
+  );
 }
-
