@@ -1,7 +1,5 @@
 import Link from "next/link"
-import { Calendar, Clock, Edit, User } from "lucide-react"
-import { Suspense } from "react"
-import { createServerSupabaseClient } from "@/utils/supabase/server"
+import { Calendar, Clock, Edit, User } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,33 +7,46 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { MaterialLaborTable } from "@/components/material-labor-table"
 import { ToolsAssignmentTable } from "@/components/tools-assignment-table"
-import { Skeleton } from "@/components/ui/skeleton"
+
+// Sample project data - in a real app, you would fetch this from an API
+const projectsData = [
+  {
+    id: "1",
+    name: "Greenview Residence",
+    type: "Two-storey Residence",
+    client: "John Smith",
+    dateRequested: "2025-02-15",
+    targetDate: "2025-08-20",
+    status: "In Progress",
+    description:
+      "A modern two-storey residence with 4 bedrooms, 3 bathrooms, and a spacious living area. The project includes landscaping and a two-car garage.",
+  },
+  {
+    id: "2",
+    name: "Skyline Apartments",
+    type: "Two-Storey Apartment with Roofdeck",
+    client: "Sarah Johnson",
+    dateRequested: "2025-01-10",
+    targetDate: "2025-07-15",
+    status: "Planning",
+    description:
+      "A multi-unit apartment complex with 8 units, each featuring 2 bedrooms and 1 bathroom. The building includes a shared roofdeck with panoramic views.",
+  },
+]
 
 export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
-  return (
-    <div className="container py-10">
-      <Suspense fallback={<ProjectDetailsSkeleton />}>
-        <ProjectDetails id={params.id} />
-      </Suspense>
-    </div>
-  )
-}
+  // In a real app, you would fetch this data from an API
+  const project = projectsData.find((p) => p.id === params.id)
 
-async function ProjectDetails({ id }: { id: string }) {
-  const supabase = createServerSupabaseClient()
-
-  // Fetch project data from Supabase
-  const { data: project, error } = await supabase.from("projects").select("*").eq("id", id).single()
-
-  if (error || !project) {
+  if (!project) {
     return (
-      <>
+      <div className="container py-10">
         <h1 className="text-3xl font-bold tracking-tight mb-4">Project Not Found</h1>
         <p className="mb-6">The project you're looking for doesn't exist or has been removed.</p>
         <Button asChild>
           <Link href="/">Return to Dashboard</Link>
         </Button>
-      </>
+      </div>
     )
   }
 
@@ -61,7 +72,7 @@ async function ProjectDetails({ id }: { id: string }) {
   }
 
   return (
-    <>
+    <div className="container py-10">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
@@ -95,7 +106,7 @@ async function ProjectDetails({ id }: { id: string }) {
           </CardHeader>
           <CardContent className="flex items-center">
             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{formatDate(project.date_requested)}</span>
+            <span>{formatDate(project.dateRequested)}</span>
           </CardContent>
         </Card>
 
@@ -105,7 +116,7 @@ async function ProjectDetails({ id }: { id: string }) {
           </CardHeader>
           <CardContent className="flex items-center">
             <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{formatDate(project.target_date)}</span>
+            <span>{formatDate(project.targetDate)}</span>
           </CardContent>
         </Card>
       </div>
@@ -116,7 +127,7 @@ async function ProjectDetails({ id }: { id: string }) {
           <CardDescription>Overview of the construction project</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>{project.description || "No description provided."}</p>
+          <p>{project.description}</p>
         </CardContent>
       </Card>
 
@@ -132,48 +143,7 @@ async function ProjectDetails({ id }: { id: string }) {
           <ToolsAssignmentTable projectId={project.id} />
         </TabsContent>
       </Tabs>
-    </>
-  )
-}
-
-function ProjectDetailsSkeleton() {
-  return (
-    <>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-5 w-40" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-9 w-32" />
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-3 mb-8">
-        {Array(3)
-          .fill(0)
-          .map((_, i) => (
-            <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="p-6">
-                <Skeleton className="h-5 w-24 mb-4" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            </div>
-          ))}
-      </div>
-
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm mb-8">
-        <div className="p-6">
-          <Skeleton className="h-6 w-40 mb-2" />
-          <Skeleton className="h-4 w-60 mb-4" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      </div>
-
-      <Skeleton className="h-10 w-64 mb-6" />
-      <Skeleton className="h-[400px] w-full" />
-    </>
+    </div>
   )
 }
 

@@ -15,8 +15,6 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { toast } from "@/hooks/use-toast"
-import { supabase } from "@/utils/supabase/client"
 
 const projectTypes = [
   "Two-storey Residence",
@@ -58,68 +56,31 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
     setIsSubmitting(true)
 
     try {
-      if (!name || !type || !client || !dateRequested || !targetDate) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in all required fields",
-          variant: "destructive",
-        })
-        setIsSubmitting(false)
-        return
+      // Prepare the project data
+      const projectData = {
+        name,
+        type,
+        client,
+        dateRequested: dateRequested ? dateRequested.toISOString() : undefined,
+        targetDate: targetDate ? targetDate.toISOString() : undefined,
+        status: status || "Planning",
       }
 
-      // Format dates for Supabase
-      const formattedDateRequested = dateRequested.toISOString().split("T")[0]
-      const formattedTargetDate = targetDate.toISOString().split("T")[0]
+      // In a real app, you would submit to an API here
+      // For example:
+      // const response = await fetch('/api/projects', {
+      //   method: isEditing ? 'PUT' : 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(isEditing ? { id: project?.id, ...projectData } : projectData)
+      // })
 
-      if (isEditing && project?.id) {
-        // Update existing project
-        const { error } = await supabase
-          .from("projects")
-          .update({
-            name,
-            type,
-            client,
-            date_requested: formattedDateRequested,
-            target_date: formattedTargetDate,
-            status,
-          })
-          .eq("id", project.id)
+      // Simulate API call with a delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        if (error) throw error
-
-        toast({
-          title: "Success",
-          description: "Project updated successfully",
-        })
-      } else {
-        // Create new project
-        const { error } = await supabase.from("projects").insert({
-          name,
-          type,
-          client,
-          date_requested: formattedDateRequested,
-          target_date: formattedTargetDate,
-          status: "Planning", // Default status for new projects
-        })
-
-        if (error) throw error
-
-        toast({
-          title: "Success",
-          description: "Project created successfully",
-        })
-      }
-
-      // Redirect after successful submission
-      router.push("/")
+      // Redirect to the projects page after successful submission
+      router.push("/projects")
     } catch (error) {
-      console.error("Error saving project:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save project. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Error submitting project:", error)
     } finally {
       setIsSubmitting(false)
     }
