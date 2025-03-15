@@ -146,7 +146,7 @@ export function MaterialLaborTable({ projectId }: { projectId: string }) {
               <SheetTitle>Add Material or Labor</SheetTitle>
               <SheetDescription>Add a new material or labor item to the project</SheetDescription>
             </SheetHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 p-4">
               <div className="space-y-2">
                 <Label htmlFor="item-type">Type</Label>
                 <Select
@@ -228,7 +228,7 @@ export function MaterialLaborTable({ projectId }: { projectId: string }) {
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 p-4">
               <Button variant="outline" onClick={() => setIsAddingItem(false)}>
                 Cancel
               </Button>

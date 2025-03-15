@@ -11,14 +11,18 @@ import { MaterialLaborTable } from "@/components/material-labor-table"
 import { ToolsAssignmentTable } from "@/components/tools-assignment-table"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
+export default async function ProjectDetailsPage(props: {
+  params: { id: string };
+}) {
+  const { id } = await Promise.resolve(props.params); // Await params before destructuring
+
   return (
     <div className="container py-10">
       <Suspense fallback={<ProjectDetailsSkeleton />}>
-        <ProjectDetails id={params.id} />
+        <ProjectDetails id={id} />
       </Suspense>
     </div>
-  )
+  );
 }
 
 async function ProjectDetails({ id }: { id: string }) {
