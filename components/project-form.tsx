@@ -44,13 +44,15 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/utils/supabase/client";
 
 // ---------------------------------------
-// 1) Define your Zod schema
+// 1) Define your Zod schema (with new fields)
 // ---------------------------------------
 const projectSchema = z.object({
   // Required fields
   name: z.string().min(1, "Project name is required"),
   type: z.string().min(1, "Project type is required"),
   client: z.string().min(1, "Client name is required"),
+  number: z.string().min(1, "Client number is required"),
+  email: z.string().email("Invalid email address"),
   date_requested: z.string().min(1, "Date requested is required"),
   target_date: z.string().min(1, "Target date is required"),
 
@@ -74,6 +76,8 @@ type ProjectFormProps = {
     name: string;
     type: string;
     client: string;
+    number: string;
+    email: string;
     dateRequested: string;
     targetDate: string;
     description?: string;
@@ -111,7 +115,7 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
   }, [alertState]);
 
   // ---------------------------------------
-  // 2) Initialize react-hook-form
+  // 2) Initialize react-hook-form with defaultValues including new fields
   // ---------------------------------------
   const form = useForm<ProjectFormInputs>({
     resolver: zodResolver(projectSchema),
@@ -119,6 +123,8 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
       name: project?.name ?? "",
       type: project?.type ?? "",
       client: project?.client ?? "",
+      number: project?.number ?? "",
+      email: project?.email ?? "",
       description: project?.description ?? "",
       // Store dates as strings for easy validation
       date_requested: project?.dateRequested
@@ -147,6 +153,8 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
             name: values.name,
             type: values.type,
             client: values.client,
+            number: values.number,
+            email: values.email,
             description: values.description ?? "",
             date_requested: values.date_requested,
             target_date: values.target_date,
@@ -163,6 +171,8 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
             name: values.name,
             type: values.type,
             client: values.client,
+            number: values.number,
+            email: values.email,
             description: values.description ?? "",
             date_requested: values.date_requested,
             target_date: values.target_date,
@@ -322,6 +332,44 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
               )}
             />
 
+            {/* New row for Client Number and Client Email */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter client number"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter client email"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Description (optional) */}
             <FormField
               control={form.control}
@@ -439,27 +487,6 @@ export function ProjectForm({ project, isEditing = false }: ProjectFormProps) {
                 }}
               />
             </div>
-
-            {/* Status (only if editing) */}
-            {isEditing && (
-              <div className="space-y-2">
-                <FormLabel htmlFor="status">Project Status</FormLabel>
-                <Select
-                  value={status}
-                  onValueChange={setStatus}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Planning">Planning</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </CardContent>
 
           <CardFooter className="flex justify-between">

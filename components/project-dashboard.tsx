@@ -48,10 +48,11 @@ export function ProjectDashboard() {
       try {
         setIsLoading(true);
 
-        // Fetch projects from Supabase
+        // Fetch only "Planning" projects from Supabase
         const { data, error } = await supabase
           .from("projects")
           .select("*")
+          .eq("status", "Planning") // Only fetch rows with status = "Planning"
           .order("created_at", { ascending: false });
 
         if (error) throw error;

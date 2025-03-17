@@ -1,130 +1,152 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Calendar, MapPin, Building, Search } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { supabase } from "@/utils/supabase/client";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar, MapPin, Building, Search } from "lucide-react";
 
-// This would typically come from your database or API
-// For now, we're using sample data that includes completed projects
-const completedProjects = [
-  {
-    id: "5",
-    title: "Highland Residence",
-    budget: 320000,
-    location: "789 Mountain View, Denver, CO",
-    type: "Two-storey Residential with Roofdeck",
-    status: "Completed",
-    startDate: "2024-01-20",
-    endDate: "2024-09-15",
-    description:
-      "A modern two-storey residence with a spacious roofdeck offering panoramic mountain views. Features 4 bedrooms, 3 bathrooms, and energy-efficient design.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Highland+Residence",
-    client: "Robert Wilson",
-  },
-  {
-    id: "6",
-    title: "Riverside Apartments",
-    budget: 650000,
-    location: "456 River Road, Portland, OR",
-    type: "Multi-unit Residential",
-    status: "Completed",
-    startDate: "2023-08-10",
-    endDate: "2024-07-30",
-    description:
-      "A 12-unit apartment complex with modern amenities, including a shared courtyard, fitness center, and sustainable design features.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Riverside+Apartments",
-    client: "Jennifer Adams",
-  },
-  {
-    id: "7",
-    title: "Oakwood Office Complex",
-    budget: 850000,
-    location: "123 Business Park, Seattle, WA",
-    type: "Commercial",
-    status: "Completed",
-    startDate: "2023-05-15",
-    endDate: "2024-06-20",
-    description:
-      "A three-story office complex with modern workspaces, conference rooms, and a green roof. Designed for optimal energy efficiency and employee comfort.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Oakwood+Office",
-    client: "Oakwood Enterprises",
-  },
-  {
-    id: "8",
-    title: "Sunset Community Center",
-    budget: 420000,
-    location: "789 Community Drive, Phoenix, AZ",
-    type: "Public",
-    status: "Completed",
-    startDate: "2023-09-05",
-    endDate: "2024-05-15",
-    description:
-      "A community center featuring a multipurpose hall, classrooms, and outdoor recreational spaces. Designed to serve as a hub for local activities and events.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Community+Center",
-    client: "Sunset District Council",
-  },
-  {
-    id: "9",
-    title: "Green Valley Eco-Homes",
-    budget: 580000,
-    location: "456 Sustainable Lane, Austin, TX",
-    type: "Residential Development",
-    status: "Completed",
-    startDate: "2023-03-10",
-    endDate: "2024-04-25",
-    description:
-      "A development of six eco-friendly homes featuring solar panels, rainwater harvesting systems, and sustainable building materials.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Eco+Homes",
-    client: "Green Valley Developers",
-  },
-  {
-    id: "10",
-    title: "Lakeside Restaurant",
-    budget: 390000,
-    location: "123 Lake View, Chicago, IL",
-    type: "Commercial",
-    status: "Completed",
-    startDate: "2023-07-15",
-    endDate: "2024-02-28",
-    description:
-      "A waterfront restaurant with indoor and outdoor dining areas, featuring panoramic views of the lake and a modern, sustainable design.",
-    imageUrl: "/placeholder.svg?height=300&width=500&text=Lakeside+Restaurant",
-    client: "Lakeside Dining Group",
-  },
-]
+interface SupabaseDevImage {
+  image_url: string;
+}
+
+interface SupabaseDevProject {
+  id: string;
+  title: string;
+  budget: number;
+  type: string;
+  status: string;
+  start_date: string;
+  target_date: string;
+  description: string;
+  street: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  country: string | null;
+  projects_development_images?: SupabaseDevImage[];
+}
+
+export interface CompletedProject {
+  id: string;
+  title: string;
+  budget: number;
+  type: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  location: string;
+  imageUrl: string;
+}
 
 export function CompletedProjectsGallery() {
-  const [projects] = useState(completedProjects)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterType, setFilterType] = useState("all")
+  const [projects, setProjects] = useState<CompletedProject[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
 
-  // Filter projects based on search term and type
+  // Fetch completed projects from Supabase API
+  useEffect(() => {
+    async function fetchCompletedProjects() {
+      const { data, error } = await supabase
+        .from("projects_development")
+        .select(
+          `
+          id,
+          title,
+          budget,
+          type,
+          status,
+          start_date,
+          target_date,
+          description,
+          street,
+          city,
+          state,
+          zip_code,
+          country,
+          projects_development_images (
+            image_url
+          )
+        `
+        )
+        .eq("status", "Completed");
+
+      if (error) {
+        console.error("Error fetching completed projects:", error.message);
+        return;
+      }
+      if (!data) return;
+
+      const mapped = data.map((row: SupabaseDevProject) => {
+        // Combine address fields into one location string
+        const location = [
+          row.street,
+          row.city,
+          row.state,
+          row.zip_code,
+          row.country,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        // Use the first image from the foreign table or fallback
+        const imageUrl =
+          row.projects_development_images?.[0]?.image_url ||
+          "/placeholder.svg?height=300&width=500";
+
+        return {
+          id: row.id,
+          title: row.title,
+          budget: row.budget,
+          type: row.type,
+          status: row.status,
+          startDate: row.start_date,
+          endDate: row.target_date,
+          description: row.description,
+          location,
+          imageUrl,
+        } as CompletedProject;
+      });
+
+      setProjects(mapped);
+    }
+    fetchCompletedProjects();
+  }, []);
+
+  // Get unique project types for filtering
+  const uniqueTypes = Array.from(
+    new Set(projects.map((project) => project.type))
+  );
+
+  // Filter projects based on search term and filter type
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesType = filterType === "all" || project.type === filterType
-
-    return matchesSearch && matchesType
-  })
-
-  const uniqueTypes = Array.from(new Set(projects.map((project) => project.type)))
+      project.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filterType === "all" || project.type === filterType;
+    return matchesSearch && matchesType;
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -155,30 +177,31 @@ export function CompletedProjectsGallery() {
 
       {filteredProjects.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-muted-foreground">No completed projects found matching your criteria.</p>
+          <p className="text-muted-foreground">No Completed SDG Project yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
             <Card key={project.id} className="overflow-hidden flex flex-col">
               <div className="relative h-48">
-                <Image src={project.imageUrl || "/placeholder.svg"} alt={project.title} fill className="object-cover" />
-                <Badge className="absolute top-2 right-2 bg-green-100 text-green-800 hover:bg-green-100/80">
+                <Image
+                  src={project.imageUrl}
+                  alt={project.title}
+                  fill
+                  className="object-cover"
+                />
+                <Badge className="absolute top-2 right-2 bg-green-100 text-green-800">
                   Completed
                 </Badge>
               </div>
               <CardContent className="p-4 flex-grow">
                 <h3 className="text-lg font-semibold mb-1">{project.title}</h3>
-                <p className="text-primary text-xl font-bold mb-2">₱{project.budget.toLocaleString()}</p>
+                <p className="text-primary text-xl font-bold mb-2">
+                  ₱{project.budget.toLocaleString()}
+                </p>
                 <div className="flex items-center text-muted-foreground mb-2">
                   <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                   <p className="text-sm truncate">{project.location}</p>
-                </div>
-                <div className="flex flex-wrap gap-4 mb-3 text-sm">
-                  <div className="flex items-center">
-                    <Building className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <span>{project.type}</span>
-                  </div>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <div className="flex items-center">
@@ -186,11 +209,15 @@ export function CompletedProjectsGallery() {
                     <span>Completed: {formatDate(project.endDate)}</span>
                   </div>
                 </div>
-                <p className="mt-3 text-sm line-clamp-2">{project.description}</p>
+                <p className="mt-3 text-sm line-clamp-2">
+                  {project.description}
+                </p>
               </CardContent>
               <CardFooter className="p-4 pt-0">
                 <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/view-project/${project.id}`}>View Project Details</Link>
+                  <Link href={`/view-project/${project.id}`}>
+                    View Project Details
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -198,6 +225,5 @@ export function CompletedProjectsGallery() {
         </div>
       )}
     </div>
-  )
+  );
 }
-
