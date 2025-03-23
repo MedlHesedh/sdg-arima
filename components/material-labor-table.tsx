@@ -122,7 +122,7 @@ export function MaterialLaborTable({
     console.log(newItem.name);
     const targetDateInMonths = 1;
 
-    const tempForecastedCost = fetch(`http://127.0.0.1:5000/predict?material_name=${newItem.name}&steps=${targetDateInMonths}`).
+    const tempForecastedCost = fetch(`http://127.0.0.1:5000/predict?material_name=${encodeURIComponent(newItem.name)}&steps=${targetDateInMonths}`).
       then(response => response.json()).
       then(data => {
         setForecastedCost(data.forecast[0]);
