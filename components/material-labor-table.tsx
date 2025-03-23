@@ -114,12 +114,20 @@ export function MaterialLaborTable({
   const [available, setAvailable] = useState<number>(0);
   const [dbCost, setDbCost] = useState<number>(0);
 
+
   const [forecastedCost, setForecastedCost] = useState(0);
 
+
   useEffect(() => {
-    const forecastedCost = fetch("http://127.0.0.1:5000/predict", {
-      
-    })
+    console.log(newItem.name);
+    const targetDateInMonths = 1;
+
+    const tempForecastedCost = fetch(`http://127.0.0.1:5000/predict?material_name=${newItem.name}&steps=${targetDateInMonths}`).
+      then(response => response.json()).
+      then(data => {
+        setForecastedCost(data.forecast[0]);
+      });
+  }, [newItem.name]);
 
   useEffect(() => {
     fetchItems();
@@ -487,7 +495,7 @@ export function MaterialLaborTable({
                   <div className="flex-1">
                     <Label>Cost (PHP)</Label>
                     <div className="text-sm text-muted-foreground">
-                      {dbCost || 0}
+                      {forecastedCost || 0}
                     </div>
                   </div>
                 </div>
