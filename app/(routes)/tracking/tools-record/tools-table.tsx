@@ -108,21 +108,30 @@ export function ToolsTable({ tools, onStatusChange, onViewHistory }: ToolsTableP
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
+        <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center p-4">
-            {selectedTool && (
-              <>
-                <div className="bg-white p-4 rounded-md">
-                  <QRCode value={selectedTool.qrCode} size={200} />
-                </div>
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                  Tool ID: {selectedTool.id}
-                  <br />
-                  QR Code: {selectedTool.qrCode}
-                </p>
-              </>
-            )}
+        {selectedTool && (
+          <>
+            <div className="bg-white p-4 rounded-md">
+          <QRCode value={selectedTool.qrCode} size={200} />
+            </div>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+          Tool ID: {selectedTool.id}
+          <br />
+          QR Code: {selectedTool.qrCode}
+            </p>
+            <Button
+          onClick={() => {
+            if (selectedTool) {
+              window.location.href = `/tools/${selectedTool.id}`;
+            }
+          }}
+            >
+          Go to Tool Details
+            </Button>
+          </>
+        )}
           </div>
         </DialogContent>
       </Dialog>

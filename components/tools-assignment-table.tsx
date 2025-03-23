@@ -744,15 +744,24 @@ export function ToolsAssignmentTable({
       <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
-            <DialogDescription>
-              Scan this QR code to track this tool
-            </DialogDescription>
+        <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
+        <DialogDescription>
+          Scan this QR code to track this tool
+        </DialogDescription>
           </DialogHeader>
           <QRCodeGenerator
-            serialNumber={selectedTool?.serialNumber || ""}
-            toolName={selectedTool?.name || ""}
+        serialNumber={selectedTool?.serialNumber || ""}
+        toolName={selectedTool?.name || ""}
           />
+          <Button
+        onClick={() => {
+          if (selectedTool) {
+            window.location.href = `/tools/${selectedTool.id}`;
+          }
+        }}
+          >
+        Go to Tool Details
+          </Button>
         </DialogContent>
       </Dialog>
       <Dialog open={viewMoreDialogOpen} onOpenChange={setViewMoreDialogOpen}>

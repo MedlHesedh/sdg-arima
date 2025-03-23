@@ -41,7 +41,7 @@ export const columns: ColumnDef<LaborHistory>[] = [
   },
   {
     accessorKey: "cost",
-    header: "Cost",
+    header: "Daily Rate",
   },
   {
     accessorKey: "date",

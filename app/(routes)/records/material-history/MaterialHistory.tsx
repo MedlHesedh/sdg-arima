@@ -129,13 +129,13 @@ export function DataTable<TData, TValue>({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
+        {/* <Button
           onClick={handleDownloadCSV}
           className="ml-2"
           disabled={Object.keys(rowSelection).length === 0}
         >
           Download Selected
-        </Button>
+        </Button>  remove comment nalang if gusto ibalik ung download selected*/}
       </div>
       <div className="flex-1 text-sm text-muted-foreground">
         {table.getFilteredSelectedRowModel().rows.length} of{" "}

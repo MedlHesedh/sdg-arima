@@ -114,6 +114,13 @@ export function MaterialLaborTable({
   const [available, setAvailable] = useState<number>(0);
   const [dbCost, setDbCost] = useState<number>(0);
 
+  const [forecastedCost, setForecastedCost] = useState(0);
+
+  useEffect(() => {
+    const forecastedCost = fetch("http://127.0.0.1:5000/predict", {
+      
+    })
+
   useEffect(() => {
     fetchItems();
   }, [projectId]);
@@ -295,6 +302,53 @@ export function MaterialLaborTable({
       toast({ title: "Item added successfully!" });
     }
   };
+
+  async function addItem() {
+    if (!newItem.name || !newItem.cost || !newItem.quantity) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const totalCost = (newItem.quantity || 0) * (newItem.cost || 0);
+    const itemToAdd = {
+      ...newItem,
+      project_id: projectId,
+      total_cost: totalCost,
+    };
+
+    const { error } = await supabase.from("materials_labor").insert([itemToAdd]);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Success", description: "Item added successfully" });
+      setIsAddingItem(false);
+      fetchItems();
+    }
+  }
+
+  async function deleteItem(id: string) {
+    const { error } = await supabase.from("materials_labor").delete().eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Success", description: "Item deleted successfully" });
+      fetchItems();
+    }
+  }
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", {
@@ -556,7 +610,7 @@ export function MaterialLaborTable({
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => {}}
+                            onClick={() => deleteItem(item.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>

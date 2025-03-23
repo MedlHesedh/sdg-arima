@@ -27,6 +27,24 @@ import { CompletedDevelopmentListing } from "@/components/completed-project-list
 export default function Home() {
   return (
     <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="/">Project Planning</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Project Dashboard</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+      <div className="container mx-auto py-10">
       <Tabs defaultValue="projects" className="w-full">
         <TabsList className="mb-8">
           <TabsTrigger value="projects">Project Planning</TabsTrigger>
@@ -93,6 +111,7 @@ export default function Home() {
           <CompletedDevelopmentListing />
         </TabsContent>
       </Tabs>
+      </div>
     </SidebarInset>
   );
 }

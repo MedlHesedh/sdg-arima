@@ -74,14 +74,14 @@ export const columns: ColumnDef<Material>[] = [
       );
     },
   },
-  {
-    accessorKey: "quantity",
-    header: () => <div className="text-center">Quantity</div>,
-    cell: ({ row }) => {
-      const quantity = parseFloat(row.getValue("quantity"));
-      return <div className="text-center font-medium">{quantity}</div>;
-    },
-  },
+  // {
+  //   accessorKey: "quantity",
+  //   header: () => <div className="text-center">Quantity</div>,
+  //   cell: ({ row }) => {
+  //     const quantity = parseFloat(row.getValue("quantity"));
+  //     return <div className="text-center font-medium">{quantity}</div>;
+  //   },
+  // },
   {
     accessorKey: "cost",
     header: "Cost",

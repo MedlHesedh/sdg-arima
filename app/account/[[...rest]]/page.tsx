@@ -36,10 +36,10 @@ export default function AccountPage() {
 
       {/* Page Content */}
       <div className="container mx-auto py-10">
-        <div className="flex justify-center items-center min-h-screen p-4">
+        {/* <div className="flex justify-center items-center min-h-screen p-4"> */}
           <UserProfile routing="path" path="/account" />
         </div>
-      </div>
+      {/* </div> */}
     </SidebarInset>
   );
 }

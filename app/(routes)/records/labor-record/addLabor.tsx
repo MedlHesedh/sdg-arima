@@ -26,7 +26,7 @@ import { supabase } from "@/utils/supabase/client";
 
 const formSchema = z.object({
   labor: z.string().min(1, "Name is required"),
-  quantity: z.coerce.number().min(1, "Quantity is required"),
+  quantity: z.coerce.number().min(1, "Number of Workers is required"),
   cost: z.coerce
     .number()
     .refine((value) => /^\d+(\.\d{2})$/.test(value.toFixed(2)), {
@@ -135,11 +135,11 @@ export default function AddLaborForm({
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantity</FormLabel>
+                <FormLabel>Number of Workers</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="Enter quantity"
+                    placeholder="Number of workers"
                     {...field}
                     value={field.value ?? ""}
                     onChange={(e) =>
@@ -160,7 +160,7 @@ export default function AddLaborForm({
             name="cost"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cost</FormLabel>
+                <FormLabel>Daily Rate</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -193,23 +193,37 @@ export default function AddLaborForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Select labor category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="Management and Supervision">
+                      Management and Supervision
+                    </SelectItem>
+                    <SelectItem value="General Laborers">General Laborers</SelectItem>
                     <SelectItem value="Masonry">Masonry</SelectItem>
-                    <SelectItem value="Metal Works">Metal Works</SelectItem>
-                    <SelectItem value="Woodworks">Woodworks</SelectItem>
-                    <SelectItem value="Concrete Works">
-                      Concrete Works
+                    <SelectItem value="Carpentry">Carpentry</SelectItem>
+                    <SelectItem value="Steel Works">Steel Works</SelectItem>
+                    <SelectItem value="Electrical Works">Electrical Works</SelectItem>
+                    <SelectItem value="Plumbing">Plumbing</SelectItem>
+                    <SelectItem value="Painting and Finishing">
+                      Painting and Finishing
                     </SelectItem>
-                    <SelectItem value="Painting Works">
-                      Painting Works
+                    <SelectItem value="Heavy Equipment Operators">
+                      Heavy Equipment Operators
                     </SelectItem>
+                    <SelectItem value="Safety and Inspection">
+                      Safety and Inspection
+                    </SelectItem>
+                    <SelectItem value="Administrative Support">
+                      Administrative Support
+                    </SelectItem>
+                    <SelectItem value="Miscellaneous">Miscellaneous</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
+
             )}
           />
         </div>

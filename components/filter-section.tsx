@@ -62,7 +62,7 @@ export default function FilterSection() {
             <div className="mt-2">
               <Slider
                 defaultValue={[1000, 5000]}
-                max={1000000}
+                max={100000000}
                 step={100}
                 onValueChange={(value) => setPriceRange(value as number[])}
               />

@@ -181,7 +181,7 @@ export function ToolUtilizationDashboard() {
 
         setTimelineData(timelineChartData)
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+        // console.error("Error fetching dashboard data:", error)
         toast({
           title: "Error",
           description: "Failed to load dashboard data",
@@ -287,8 +287,8 @@ export function ToolUtilizationDashboard() {
         <TabsList className="mb-4">
           <TabsTrigger value="utilization">Tool Utilization</TabsTrigger>
           <TabsTrigger value="projects">Project Usage</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          {/* <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="utilization">

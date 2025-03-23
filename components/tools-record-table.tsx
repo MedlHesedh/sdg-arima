@@ -797,20 +797,31 @@ export function ToolsRecordTable() {
       <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
-            <DialogDescription>
-              Serial Number: {selectedSerialNumber}
-            </DialogDescription>
+        <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
+        <DialogDescription>
+          Serial Number: {selectedSerialNumber}
+        </DialogDescription>
           </DialogHeader>
           <QRCodeGenerator
-            serialNumber={selectedSerialNumber}
-            toolName={selectedTool?.name || ""}
+        serialNumber={selectedSerialNumber}
+        toolName={selectedTool?.name || ""}
           />
           <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">
-              Scan this QR code with your phone's camera or a QR code scanner
-              app to access this tool's details.
-            </p>
+        <p className="text-sm text-muted-foreground">
+          Scan this QR code with your phone's camera or a QR code scanner
+          app to access this tool's details.
+        </p>
+          </div>
+          <div className="text-center mt-4">
+        <Button
+          onClick={() => {
+            if (selectedTool) {
+          window.location.href = `/tools/${selectedTool.id}`;
+            }
+          }}
+        >
+          Go to Tool Details
+        </Button>
           </div>
         </DialogContent>
       </Dialog>

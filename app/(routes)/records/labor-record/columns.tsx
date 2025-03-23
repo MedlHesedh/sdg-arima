@@ -57,7 +57,7 @@ export const columns: ColumnDef<Labor>[] = [
   },
   {
     accessorKey: "quantity",
-    header: "Quantity",
+    header: "Number of Workers",
     cell: ({ row }) => {
       const quantity = row.original.quantity;
       return <div className="text-center font-medium">{quantity}</div>;
@@ -65,7 +65,7 @@ export const columns: ColumnDef<Labor>[] = [
   },
   {
     accessorKey: "cost",
-    header: "Cost",
+    header: "Daily Rate",
     cell: ({ row }) => {
       const cost = row.original.cost;
       return `₱${
@@ -75,7 +75,7 @@ export const columns: ColumnDef<Labor>[] = [
   },
   {
     accessorKey: "total_cost",
-    header: "Total Cost",
+    header: "On-Call Daily Rate",
     cell: ({ row }) => {
       const totalCost = row.original.total_cost;
       return `₱${
@@ -105,7 +105,7 @@ export const columns: ColumnDef<Labor>[] = [
     id: "actions",
     cell: ({ row }) => {
       const labor = row.original;
-      return <EditLaborDialog labor={labor} />;
+      return <EditLaborDialog labor={labor} onLaborUpdated={() => { /* handle update */ }} />;
     },
   },
 ];

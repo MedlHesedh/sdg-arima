@@ -64,8 +64,8 @@ export default function Listing() {
   const [searchTerm, setSearchTerm] = useState("");
   // Note: The select items below are lower-case so we compare with a lower-case type.
   const [selectedType, setSelectedType] = useState("all");
-  // Set default price range to [1000, 1000000] so all projects show by default
-  const [priceRange, setPriceRange] = useState([1000, 1000000]);
+  // Set default price range to [1000, 100000000] so all projects show by default
+  const [priceRange, setPriceRange] = useState([1000, 100000000]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch all "In Progress" projects from "projects_development"
@@ -230,8 +230,8 @@ export default function Listing() {
               <label className="text-sm font-medium">Budget Range (₱)</label>
               <div className="mt-2">
                 <Slider
-                  defaultValue={[1000, 1000000]}
-                  max={1000000}
+                  defaultValue={[1000, 100000000]}
+                  max={100000000}
                   step={100}
                   onValueChange={(value) => setPriceRange(value as number[])}
                 />

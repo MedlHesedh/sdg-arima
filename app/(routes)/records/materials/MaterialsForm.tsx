@@ -38,7 +38,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import AddMaterial from "./AddMaterial";
+import AddMaterial from "./addMaterial";
 import EditMaterialDialog from "./EditMaterialsForm"; // We need this to override the actions column
 import { Material } from "./columns";
 
@@ -165,7 +165,7 @@ export function DataTable({ columns, data, refreshMaterials }: DataTableProps) {
                 Add material details here. Click Submit when you're done.
               </DialogDescription>
             </DialogHeader>
-            <AddMaterial onMaterialAdded={handleMaterialAdded} />
+            <AddMaterial onMaterialAdded={handleMaterialAdded} onClose={() => setOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>

@@ -165,6 +165,7 @@ export default function AddMaterial({
                     <SelectItem value="bags">Bags</SelectItem>
                     <SelectItem value="box">Box</SelectItem>
                     <SelectItem value="gal">Gallon</SelectItem>
+                    <SelectItem value="l">Liters</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

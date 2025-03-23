@@ -49,10 +49,10 @@ const data = {
       url: "#",
       icon: BookOpen,
       items: [
-        { title: "Introduction", url: "#" },
-        { title: "Get Started", url: "#" },
-        { title: "Tutorials", url: "#" },
-        { title: "Changelog", url: "#" },
+        { title: "QR Code Help", url: "/tools/help" },
+        // { title: "Get Started", url: "#" },
+        // { title: "Tutorials", url: "#" },
+        // { title: "Changelog", url: "#" },
       ],
     },
   ],
@@ -86,7 +86,7 @@ const data = {
         { title: "Tools Inventory", url: "/tools" },
         { title: "Tool Maintenance", url: "/tools/maintenance" },
         { title: "Tool Utilization", url: "/tools/dashboard" },
-        { title: "QR Code Help", url: "/tools/help" },
+        // { title: "QR Code Help", url: "/tools/help" },
       ],
     },
     {
@@ -107,6 +107,17 @@ const data = {
         { title: "Project Planning Reports", url: "#" },
       ],
     },
+    {
+      title: "Documentation",
+      url: "#",
+      icon: BookOpen,
+      items: [
+        { title: "QR Code Help", url: "/tools/help" },
+        // { title: "Get Started", url: "#" },
+        // { title: "Tutorials", url: "#" },
+        // { title: "Changelog", url: "#" },
+      ],
+    },
   ],
   projects: [
     {
@@ -114,15 +125,15 @@ const data = {
       url: "#",
       icon: ViewIcon,
       items: [
-        { title: "View Projects", url: "/project-viewing" },
-        { title: "Project Planning Reports", url: "#" },
+        { title: "View Projects", url: "https://sdg-development.vercel.app/" },
+        // { title: "Project Planning Reports", url: "#" },
       ],
     },
-    {
-      name: "Project Meeting",
-      url: "#",
-      icon: PresentationIcon,
-    },
+    // {
+    //   name: "Project Meeting",
+    //   url: "#",
+    //   icon: PresentationIcon,
+    // },
   ],
 }
 
