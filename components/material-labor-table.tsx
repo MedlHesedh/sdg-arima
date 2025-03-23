@@ -111,7 +111,10 @@ export function MaterialLaborTable({
     unit: "",
     duration: null,
   });
+  // Tracks the available quantity of selected material/labor item
+  /* TEMPORARILY DISABLED - AVAILABLE TRACKING
   const [available, setAvailable] = useState<number>(0);
+  */
   const [dbCost, setDbCost] = useState<number>(0);
 
 
@@ -119,15 +122,25 @@ export function MaterialLaborTable({
 
 
   useEffect(() => {
-    console.log(newItem.name);
-    const targetDateInMonths = 1;
+    if (!newItem.name || !newItem.type) return;
+    
+    const targetDateInMonths = 6;
+    const params = new URLSearchParams({
+      type: newItem.type.toLowerCase(),
+      name: newItem.name,
+      steps: targetDateInMonths.toString()
+    });
 
-    const tempForecastedCost = fetch(`http://127.0.0.1:5000/predict?material_name=${encodeURIComponent(newItem.name)}&steps=${targetDateInMonths}`).
-      then(response => response.json()).
-      then(data => {
-        setForecastedCost(data.forecast[0]);
+    fetch(`http://127.0.0.1:5000/predict?${params}`)
+      .then(response => response.json())
+      .then(data => {
+        setForecastedCost(data.forecast);
+      })
+      .catch(error => {
+        console.error("Error fetching forecast:", error);
+        setForecastedCost(dbCost); // Fallback to database cost if prediction fails
       });
-  }, [newItem.name]);
+  }, [newItem.name, newItem.type]);
 
   useEffect(() => {
     fetchItems();
@@ -224,7 +237,9 @@ export function MaterialLaborTable({
           name: selected.labor,
           unit: "", // for labor, unit will be set to "day" in the table rendering
         }));
+        /* TEMPORARILY DISABLED - AVAILABLE TRACKING
         setAvailable(selected.quantity);
+        */
         setDbCost(selected.cost);
       }
     } else {
@@ -237,14 +252,17 @@ export function MaterialLaborTable({
           name: selected.material,
           unit: selected.unit,
         }));
+        /* TEMPORARILY DISABLED - AVAILABLE TRACKING
         setAvailable(selected.quantity);
+        */
         setDbCost(selected.cost);
       }
     }
   };
 
-  // Update quantity handler: for material, update cost to cost * quantity; for labor, keep unit cost unchanged
+  // Update quantity handler: Validates against available quantity
   const handleQuantityChange = (value: number) => {
+    // Quantity validation is done in the Input component's onChange handler
     setNewItem((prev) => ({
       ...prev,
       quantity: value,
@@ -260,7 +278,7 @@ export function MaterialLaborTable({
   };
 
   const handleAddItem = async () => {
-    if (!newItem.name || !newItem.quantity || !newItem.cost) {
+    if (!newItem.name || !newItem.quantity) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -268,14 +286,13 @@ export function MaterialLaborTable({
       });
       return;
     }
-    // Calculate total cost based on type
+
+    // Calculate total cost based on type using forecasted cost
     let total_cost = 0;
     if (newItem.type === "Labor") {
-      // For labor: (unit cost) * quantity * duration
-      total_cost = dbCost * (newItem.quantity || 0) * (newItem.duration || 1);
+      total_cost = forecastedCost * (newItem.quantity || 0) * (newItem.duration || 1);
     } else {
-      // For material: (unit cost) * quantity
-      total_cost = dbCost * (newItem.quantity || 0);
+      total_cost = forecastedCost * (newItem.quantity || 0);
     }
 
     const { error } = await supabase.from("materials_labor").insert({
@@ -285,9 +302,10 @@ export function MaterialLaborTable({
       unit: newItem.type === "Labor" ? "" : newItem.unit,
       quantity: newItem.quantity,
       duration: newItem.type === "Labor" ? newItem.duration : null,
-      cost: dbCost, // store the unit cost
+      cost: forecastedCost, // use forecasted cost instead of dbCost
       total_cost,
     });
+
     if (error) {
       toast({
         title: "Error adding item",
@@ -305,7 +323,9 @@ export function MaterialLaborTable({
         duration: newItem.type === "Labor" ? 0 : null,
       });
       setDbCost(0);
+      /* TEMPORARILY DISABLED - AVAILABLE TRACKING
       setAvailable(0);
+      */
       setIsAddingItem(false);
       toast({ title: "Item added successfully!" });
     }
@@ -367,15 +387,18 @@ export function MaterialLaborTable({
   function NameCombobox() {
     const [open, setOpen] = useState(false);
     const selectedValue = newItem.name
+      /* TEMPORARILY DISABLED - AVAILABLE TRACKING
       ? `${newItem.name} (${available} available)`
+      */
+      ? newItem.name
       : "";
     const laborOptions = laborList.map((lab) => ({
       key: lab.id,
-      value: `${lab.labor} (${lab.quantity} available)`,
+      value: `${lab.labor} ()`,//(${lab.quantity} available)
     }));
     const materialOptions = materialList.map((mat) => ({
       key: mat.id,
-      value: `${mat.material} (${mat.quantity} available)`,
+      value: `${mat.material} ()`,//(${mat.quantity} available)
     }));
     const list = newItem.type === "Labor" ? laborOptions : materialOptions;
     return (
@@ -468,7 +491,9 @@ export function MaterialLaborTable({
                         unit: "",
                         duration: value === "Labor" ? 0 : null,
                       });
+                      /* TEMPORARILY DISABLED - AVAILABLE TRACKING
                       setAvailable(0);
+                      */
                       setDbCost(0);
                     }}
                   >
@@ -504,10 +529,13 @@ export function MaterialLaborTable({
                   <Input
                     type="number"
                     min={1}
+                    /* TEMPORARILY DISABLED - AVAILABLE TRACKING
                     max={available || 1}
+                    */
                     value={newItem.quantity?.toString() || ""}
                     onChange={(e) => {
                       const val = Number(e.target.value);
+                      /* TEMPORARILY DISABLED - AVAILABLE TRACKING
                       if (val > available) {
                         toast({
                           title: "Quantity Limit",
@@ -516,6 +544,7 @@ export function MaterialLaborTable({
                         });
                         return;
                       }
+                      */
                       handleQuantityChange(val);
                     }}
                   />

@@ -59,6 +59,23 @@ export default function Dashboard() {
   const { toast } = useToast()
 
   // Load resource options based on selected type
+  useEffect (() => {
+    const params = new URLSearchParams({
+      type: resourceType.toLowerCase(),
+      name: selectedResource,
+      steps: forecastMonths.toString()
+    });
+
+    fetch(`http://127.0.0.1:5000/predict?${params}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+      })
+      .catch(error => {
+        console.error("Error fetching forecast:", error);
+      });
+  }, [resourceType, selectedResource, forecastMonths]);
+
   useEffect(() => {
     setIsLoadingResources(true)
     setSelectedResource("")
