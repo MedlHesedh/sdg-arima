@@ -27,6 +27,21 @@ export function TrainingDialog({ open, onOpenChange }: TrainingDialogProps) {
   const [log, setLog] = useState<string[]>([])
   const { toast } = useToast()
 
+  const trainModel = () =>{
+    fetch("http://127.0.0.1:5000/train")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+      })
+
+      
+    
+    onOpenChange(false)
+  }
+
   const handleStartTraining = async () => {
     setIsTraining(true)
     setStatus("training")
@@ -143,7 +158,7 @@ export function TrainingDialog({ open, onOpenChange }: TrainingDialogProps) {
               )}
             </Button>
           ) : (
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
+            <Button onClick={() => trainModel()}>Close</Button>
           )}
         </DialogFooter>
       </DialogContent>
