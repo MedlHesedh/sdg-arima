@@ -37,15 +37,16 @@ export function TrainingDialog({ open, onOpenChange }: TrainingDialogProps) {
         console.error("Error:", error)
       })
 
-      
+
     
-    onOpenChange(false)
+    // onOpenChange(false)
   }
 
   const handleStartTraining = async () => {
     setIsTraining(true)
     setStatus("training")
     setProgress(0)
+    trainModel()
     setLog(["Initializing training process..."])
 
     try {
@@ -158,7 +159,7 @@ export function TrainingDialog({ open, onOpenChange }: TrainingDialogProps) {
               )}
             </Button>
           ) : (
-            <Button onClick={() => trainModel()}>Close</Button>
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
           )}
         </DialogFooter>
       </DialogContent>
