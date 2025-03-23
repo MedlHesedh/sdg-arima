@@ -134,7 +134,8 @@ export function MaterialLaborTable({
     fetch(`http://127.0.0.1:5000/predict?${params}`)
       .then(response => response.json())
       .then(data => {
-        setForecastedCost(data.forecast);
+        console.log(data.forecast);
+        setForecastedCost(data.forecast[5]);
       })
       .catch(error => {
         console.error("Error fetching forecast:", error);
@@ -228,7 +229,7 @@ export function MaterialLaborTable({
   }, []);
 
   const handleSelectName = (val: string) => {
-    const strippedName = val.includes(" (") ? val.split(" (")[0] : val;
+    const strippedName = val;
     if (newItem.type === "Labor") {
       const selected = laborList.find((lab) => lab.labor === strippedName);
       if (selected) {
@@ -394,11 +395,11 @@ export function MaterialLaborTable({
       : "";
     const laborOptions = laborList.map((lab) => ({
       key: lab.id,
-      value: `${lab.labor} ()`,//(${lab.quantity} available)
+      value: `${lab.labor}`,//(${lab.quantity} available)
     }));
     const materialOptions = materialList.map((mat) => ({
       key: mat.id,
-      value: `${mat.material} ()`,//(${mat.quantity} available)
+      value: `${mat.material} `,//(${mat.quantity} available)
     }));
     const list = newItem.type === "Labor" ? laborOptions : materialOptions;
     return (
@@ -520,7 +521,7 @@ export function MaterialLaborTable({
                   <div className="flex-1">
                     <Label>Cost (PHP)</Label>
                     <div className="text-sm text-muted-foreground">
-                      {forecastedCost || 0}
+                        {(forecastedCost || 0).toFixed(2)}
                     </div>
                   </div>
                 </div>

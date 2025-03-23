@@ -29,6 +29,7 @@ import {
 import { fetchMaterials, fetchLabor, fetchHistoricalData, fetchForecastData, fetchModelAccuracy } from "@/lib/api"
 import { exportToCSV, exportToPDF } from "@/lib/export-utils"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
+import { set } from "date-fns"
 
 export default function Dashboard() {
   // Resource type and selection state
@@ -58,6 +59,8 @@ export default function Dashboard() {
 
   const { toast } = useToast()
 
+  
+
   // Load resource options based on selected type
   useEffect (() => {
     const params = new URLSearchParams({
@@ -69,7 +72,8 @@ export default function Dashboard() {
     fetch(`http://127.0.0.1:5000/predict?${params}`)
       .then(response => response.json())
       .then(data => {
-        console.log(data);
+        setForecastData(data.forecast || [])
+        console.log(forecastData)
       })
       .catch(error => {
         console.error("Error fetching forecast:", error);

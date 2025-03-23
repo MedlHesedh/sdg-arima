@@ -8,7 +8,7 @@ export async function fetchMaterials(): Promise<string[]> {
   // For demo purposes, return mock data
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(["Concrete", "Steel", "Lumber", "Copper", "Aluminum"])
+      resolve(["Concrete", "Steel", "Lumber", "Copper", "Aluminum", "Sand and Gravel"])
     }, 1000)
   })
 }
