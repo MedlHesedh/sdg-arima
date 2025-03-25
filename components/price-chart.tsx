@@ -65,7 +65,7 @@ export function PriceChart({ historicalData, forecastData, isLoading, chartType,
             style: { textAnchor: "middle" },
           }}
         />
-        <ChartTooltip content={<ChartTooltipContent labelFormatter={formatDate} formatter={formatPrice} />} />
+        <ChartTooltip content={<ChartTooltipContent label="" payload={[]} labelFormatter={formatDate} formatter={formatPrice} />} />
         <Legend />
 
         {chartType === "line" ? (
@@ -79,7 +79,7 @@ export function PriceChart({ historicalData, forecastData, isLoading, chartType,
               connectNulls
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}
-              isAnimationActive={true}
+              isAnimationActive={false}
               animationDuration={500}
               data={historicalData.map((item) => ({
                 ...item,
@@ -96,7 +96,7 @@ export function PriceChart({ historicalData, forecastData, isLoading, chartType,
               connectNulls
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}
-              isAnimationActive={true}
+              isAnimationActive={false}
               animationDuration={500}
               data={forecastData.map((item) => ({
                 ...item,
@@ -110,7 +110,7 @@ export function PriceChart({ historicalData, forecastData, isLoading, chartType,
               dataKey="price"
               fill="#8884d8"
               name="Historical"
-              isAnimationActive={true}
+              isAnimationActive={false}
               animationDuration={500}
               data={historicalData.map((item) => ({
                 ...item,
@@ -121,7 +121,7 @@ export function PriceChart({ historicalData, forecastData, isLoading, chartType,
               dataKey="price"
               fill="#82ca9d"
               name="Forecast"
-              isAnimationActive={true}
+              isAnimationActive={false}
               animationDuration={500}
               data={forecastData.map((item) => ({
                 ...item,

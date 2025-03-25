@@ -31,12 +31,19 @@ export function ForecastResults({ model, onForecastComplete }: ForecastResultsPr
     setForecastProgress(0)
     setForecastError(null)
 
+    let interval: NodeJS.Timeout | null = null
     try {
       // Simulate progress
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         setForecastProgress((prev) => {
           if (prev >= 95) {
-            clearInterval(interval)
+            if (interval) {
+              if (interval !== null) {
+                if (interval !== null) {
+                  clearInterval(interval)
+                }
+              }
+            }
             return prev
           }
           return prev + 5
@@ -75,7 +82,7 @@ export function ForecastResults({ model, onForecastComplete }: ForecastResultsPr
         })
       }, 500)
     } catch (error) {
-      clearInterval()
+      // clearInterval(interval)
       setForecastError(error instanceof Error ? error.message : "Failed to generate forecast")
       setIsForecasting(false)
     }

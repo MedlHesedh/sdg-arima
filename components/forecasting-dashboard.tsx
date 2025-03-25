@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DataUploader } from "@/components/data-uploader"
@@ -8,7 +8,24 @@ import { ModelTraining } from "@/components/model-training"
 import { ForecastResults } from "@/components/forecast-results"
 import { ReportGenerator } from "@/components/report-generator"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label";
 import { BarChart, LineChart, FileText, FileUp } from "lucide-react"
+import { supabase } from "@/utils/supabase/client";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function ForecastingDashboard() {
   const [activeTab, setActiveTab] = useState("upload")
@@ -33,6 +50,12 @@ export function ForecastingDashboard() {
     setForecastResults(results)
     setActiveTab("reports")
   }
+
+  const handleResourceSelect = (value: string) => {
+    console.log("Selected Resource:", value);
+    // Dito mo maaaring gamitin ang selected resource (halimbawa, i-save sa state o gamitin sa data upload)
+  };
+
 
   return (
     <div className="space-y-6">
@@ -92,7 +115,7 @@ export function ForecastingDashboard() {
         </TabsList>
 
         <TabsContent value="upload">
-          <DataUploader onDataUploaded={handleDataUploaded} />
+            <DataUploader onDataUploaded={handleDataUploaded} />
         </TabsContent>
 
         <TabsContent value="train">

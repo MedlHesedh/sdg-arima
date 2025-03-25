@@ -59,7 +59,7 @@ export function ForecastChart({ forecastData, isLoading, chartType, resourceType
             style: { textAnchor: "middle" },
           }}
         />
-        <ChartTooltip content={<ChartTooltipContent labelFormatter={formatDate} formatter={formatPrice} />} />
+        <ChartTooltip content={<ChartTooltipContent label="" payload={[]} labelFormatter={formatDate} formatter={formatPrice} />} />
 
         {chartType === "line" ? (
           <>
@@ -70,7 +70,7 @@ export function ForecastChart({ forecastData, isLoading, chartType, resourceType
               fill="#82ca9d"
               fillOpacity={0.2}
               name="Upper Bound"
-              isAnimationActive={true}
+              isAnimationActive={false}
             />
             <Area
               type="monotone"
@@ -79,7 +79,7 @@ export function ForecastChart({ forecastData, isLoading, chartType, resourceType
               fill="#82ca9d"
               fillOpacity={0.2}
               name="Lower Bound"
-              isAnimationActive={true}
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
@@ -89,7 +89,7 @@ export function ForecastChart({ forecastData, isLoading, chartType, resourceType
               name="Forecast"
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}
-              isAnimationActive={true}
+              isAnimationActive={false}
               animationDuration={500}
             />
           </>

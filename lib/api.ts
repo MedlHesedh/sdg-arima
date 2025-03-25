@@ -1,38 +1,44 @@
+
+
 // Mock API functions to simulate interaction with the Flask backend
 
-// Fetch available materials
-export async function fetchMaterials(): Promise<string[]> {
-  // In a real app, this would be an API call to your Flask backend
-  // return fetch('/api/materials').then(res => res.json());
+// // Fetch available materials
+// export async function fetchMaterials(): Promise<string[]> {
+//   // // In a real app, this would be an API call to your Flask backend
+//   // // return fetch('/api/materials').then(res => res.json());
 
-  // For demo purposes, return mock data
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(["Concrete", "Steel", "Lumber", "Copper", "Aluminum", "Sand and Gravel"])
-    }, 1000)
-  })
-}
+//   // // For demo purposes, return mock data
+//   // return new Promise((resolve) => {
+//   //   setTimeout(() => {
+//   //     resolve(["Concrete", "Steel", "Lumber", "Copper", "Aluminum", "Sand and Gravel"])
+//   //   }, 1000)
+//   // })
 
-// Fetch available labor types
-export async function fetchLabor(): Promise<string[]> {
-  // In a real app, this would be an API call to your Flask backend
-  // return fetch('/api/labor').then(res => res.json());
 
-  // For demo purposes, return mock data
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        "Carpenter",
-        "Electrician",
-        "Plumber",
-        "Mason",
-        "General Labor",
-        "Heavy Equipment Operator",
-        "HVAC Technician",
-      ])
-    }, 1000)
-  })
-}
+// }
+
+
+// // Fetch available labor types
+// export async function fetchLabor(): Promise<string[]> {
+//   // In a real app, this would be an API call to your Flask backend
+//   // return fetch('/api/labor').then(res => res.json());
+
+//   // For demo purposes, return mock data
+//   return new Promise((resolve) => {
+//     setTimeout(() => {
+//       resolve([
+//         "Carpenter",
+//         "Electrician",
+//         "Plumber",
+//         "Mason",
+//         "General Labor",
+//         "Heavy Equipment Operator",
+//         "HVAC Technician",
+//       ])
+//     }, 1000)
+//   })
+// }
+
 
 // Fetch historical price data for a material or labor
 export async function fetchHistoricalData(type: string, resource: string): Promise<any[]> {

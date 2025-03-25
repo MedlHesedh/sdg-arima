@@ -116,8 +116,8 @@ export function ReportDialog({
           <Tabs defaultValue="summary">
             <TabsList className="mb-4">
               <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="details">Detailed Analysis</TabsTrigger>
-              <TabsTrigger value="visualization">Visualization</TabsTrigger>
+              {/* <TabsTrigger value="details">Detailed Analysis</TabsTrigger>
+              <TabsTrigger value="visualization">Visualization</TabsTrigger> */}
             </TabsList>
 
             <TabsContent value="summary">
@@ -289,10 +289,10 @@ export function ReportDialog({
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
-          <Button variant="outline" onClick={handlePrintReport} disabled={isGenerating}>
+          {/* <Button variant="outline" onClick={handlePrintReport} disabled={isGenerating}>
             <Printer className="mr-2 h-4 w-4" />
             Print
-          </Button>
+          </Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

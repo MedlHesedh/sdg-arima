@@ -385,6 +385,7 @@ export function MaterialLaborTable({
       currency: "PHP",
     }).format(amount);
 
+// Function to render a combobox for selecting labor or materials in a project  
   function NameCombobox() {
     const [open, setOpen] = useState(false);
     const selectedValue = newItem.name
