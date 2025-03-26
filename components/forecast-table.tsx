@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 
+
 interface ForecastTableProps {
   historicalData: any[]
   forecastData: any[]
@@ -27,7 +28,7 @@ export function ForecastTable({ historicalData, forecastData, isLoading, resourc
 
   // Format price for display
   const formatPrice = (price: number) => {
-    return resourceType === "labor" ? `$${price.toFixed(2)}/hr` : `$${price.toFixed(2)}`
+    return resourceType === "labor" ? `₱ ${price.toFixed(2)} /hr` : `₱ ${price.toFixed(2)}`
   }
 
   // Combine historical and forecast data
@@ -80,7 +81,7 @@ export function ForecastTable({ historicalData, forecastData, isLoading, resourc
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by date or type..."
+            placeholder="Search by date or status..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => {
@@ -115,23 +116,24 @@ export function ForecastTable({ historicalData, forecastData, isLoading, resourc
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedData.length > 0 ? (
                 paginatedData.map((item, index) => (
-                  <TableRow key={index} className={item.dataType === "Forecast" ? "bg-muted/30" : ""}>
+                  <TableRow key={index} className={item.dataType === "Forecast" ? "bg-muted/30" : item.dataType === "Historical" ? "bg-muted/30" : ""}>
                     <TableCell>{formatDate(item.date)}</TableCell>
                     <TableCell>{formatPrice(item.price)}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          item.dataType === "Forecast" ? "bg-primary/20 text-primary" : "bg-secondary/20 text-secondary"
+                          item.dataType === "Forecast" ? "bg-primary/20 text-primary" : item.dataType === "Historical" ? "bg-gray-200 text-gray-700"  : ""
+                          
                         }`}
                       >
-                        {item.dataType}
+                        {item.dataType === "Forecast" ? "Forecast" : "Historical"}
                       </span>
                     </TableCell>
                   </TableRow>

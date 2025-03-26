@@ -26,14 +26,15 @@ import {
   FileIcon as FilePdf,
   AlertTriangle,
 } from "lucide-react"
-import { fetchMaterials, fetchLabor, fetchHistoricalData, fetchForecastData, fetchModelAccuracy } from "@/lib/api"
+import { fetchHistoricalData, fetchForecastData, fetchModelAccuracy } from "@/lib/api"
 import { exportToCSV, exportToPDF } from "@/lib/export-utils"
 import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 import { set } from "date-fns"
+import { supabase } from "@/utils/supabase/client";
 
 export default function Dashboard() {
   // Resource type and selection state
-  const [resourceType, setResourceType] = useState<"material" | "labor">("material")
+  const [resourceType, setResourceType] = useState<"material" | "labor" >("material");
   const [selectedResource, setSelectedResource] = useState<string>("")
   const [resourceOptions, setResourceOptions] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState<string>("")
@@ -59,8 +60,102 @@ export default function Dashboard() {
 
   const { toast } = useToast()
 
-  
+  const fetchResources = async (type: "material" | "labor"): Promise<string[]> => {
+    try {
+      const table = type === "material" ? "material_adding" : "labor_adding";
+      const { data, error } = await supabase.from(table).select("*");
+      if (error) {
+        console.error(`Error fetching ${type} resources:`, error);
+        return [];
+      }
+      return data.map((item) => item[type === "material" ? "material" : "labor"]);
+    } catch (error) {
+      console.error(`Error fetching ${type} resources:`, error);
+      return [];
+    }
+  };
 
+
+  type LaborData = {
+    id: string;
+    labor: string;
+    category: string;
+    quantity: number;
+    cost: number;
+    created_at?: string;
+    updated_at?: string;
+  };
+  
+  type MaterialData = {
+    id: string;
+    material: string;
+    unit: string;
+    quantity: number;
+    cost: number;
+    created_at?: string;
+    updated_at?: string;
+  };
+  
+  function useResourceSelector(resourceType: "Labor" | "Material") {
+    const [labors, setLabors] = useState<LaborData[]>([]);
+    const [materials, setMaterials] = useState<MaterialData[]>([]);
+    const [selectedResource, setSelectedResource] = useState("");
+    const [isOpen, setIsOpen] = useState(false);
+  
+    // Fetch data para sa workers at supplies
+    useEffect(() => {
+      const fetchResources = async () => {
+        if (resourceType === "Labor") {
+          const { data: laborData, error: laborError } = await supabase
+          .from("labor_adding")
+          .select("id, labor, category, quantity, cost, created_at, updated_at");
+          if (laborError) {
+            console.error("Error fetching workers:", laborError);
+          } else {
+            setLabors(laborData || []);
+          }
+        } else {
+          const { data: materialData, error: materialError } = await supabase
+          .from("material_adding")
+          .select("id, material, unit, quantity, cost, created_at, updated_at");
+          if (materialError) {
+            console.error("Error fetching supplies:", materialError);
+          } else {
+            setMaterials(materialData || []);
+          }
+        }
+      };
+  
+      fetchResources();
+    }, [resourceType]);
+  
+    // I-map ang data sa options
+    const laborOptions = labors.map((lab) => ({
+      key: lab.id,
+      value: `${lab.labor}`
+    }));
+  
+    const materialOptions = materials.map((mat) => ({
+      key: mat.id,
+      value: `${mat.material} `
+    }));
+  
+    const options = resourceType === "Labor" ? laborOptions : materialOptions;
+  
+    // Handle selection ng resource
+    const handleSelect = (value: string) => {
+      setSelectedResource(value);
+      setIsOpen(false);
+      return value; // I-return ang selected value para magamit sa parent component
+    };
+  
+    return {
+      options,
+      selectedResource,
+      handleSelect,
+    };
+  }
+  
   // Load resource options based on selected type
   useEffect (() => {
     const params = new URLSearchParams({
@@ -72,6 +167,7 @@ export default function Dashboard() {
     fetch(`http://127.0.0.1:5000/predict?${params}`)
       .then(response => response.json())
       .then(data => {
+        console.log("Fetched forecast data:", data.forecast);
         setForecastData(data.forecast || [])
         console.log(forecastData)
       })
@@ -86,10 +182,10 @@ export default function Dashboard() {
 
     const fetchResourceOptions = async () => {
       try {
-        const options = resourceType === "material" ? await fetchMaterials() : await fetchLabor()
+        const options = resourceType === "material" ? await fetchResources("material") : await fetchResources("labor")
 
         setResourceOptions(options)
-        if (options.length > 0) {
+        if (options.length > 0 ) {
           setSelectedResource(options[0])
         }
       } catch (error) {
@@ -170,6 +266,7 @@ export default function Dashboard() {
     }
   }
 
+
   const handleExportCSV = () => {
     try {
       exportToCSV(
@@ -225,7 +322,7 @@ export default function Dashboard() {
         <CardContent>
           <div className="space-y-6">
             <RadioGroup
-              value={resourceType}
+              value={resourceType || ""}
               onValueChange={(value) => setResourceType(value as "material" | "labor")}
               className="flex space-x-4"
             >
@@ -240,44 +337,43 @@ export default function Dashboard() {
             </RadioGroup>
 
             <div className="space-y-2">
-              <Label htmlFor="resource-search">Search {resourceType}</Label>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="resource-search"
-                  placeholder={`Search ${resourceType}...`}
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  disabled={isLoadingResources}
-                />
-              </div>
-
+              <Label htmlFor="resource-search">Search {resourceType }</Label>
               <Select
                 value={selectedResource}
                 onValueChange={setSelectedResource}
                 disabled={isLoadingResources || filteredResources.length === 0}
               >
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={`Select ${resourceType}`} />
+                <SelectValue placeholder={`Select ${resourceType === "labor" ? "labor..." : "material..."}`} />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Search Input inside SelectContent */}
+                  <div className="p-2">
+                    <Input
+                      placeholder={`Search ${resourceType}...`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Filtered Resources */}
                   {filteredResources.map((resource) => (
                     <SelectItem key={resource} value={resource}>
                       {resource}
                     </SelectItem>
                   ))}
+                  {/* No Matching Resources Found */}
+                  {filteredResources.length === 0 && !isLoadingResources && (
+                    <div className="text-sm text-muted-foreground flex items-center p-2">
+                      <AlertTriangle className="h-4 w-4 mr-1" />
+                      No matching resources found
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
-
-              {filteredResources.length === 0 && !isLoadingResources && (
-                <div className="text-sm text-muted-foreground flex items-center mt-2">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  No matching resources found
-                </div>
-              )}
             </div>
-          </div>
+          </div>  
         </CardContent>
       </Card>
 
@@ -373,12 +469,12 @@ export default function Dashboard() {
         <div className="flex justify-between items-center mb-4">
           <TabsList>
             <TabsTrigger value="combined">Combined View</TabsTrigger>
-            <TabsTrigger value="historical">Historical</TabsTrigger>
-            <TabsTrigger value="forecast">Forecast</TabsTrigger>
+            {/* <TabsTrigger value="historical">Historical</TabsTrigger>
+            <TabsTrigger value="forecast">Forecast</TabsTrigger> */}
             <TabsTrigger value="table">Table View</TabsTrigger>
           </TabsList>
 
-          <div className="flex space-x-2">
+          {/* <div className="flex space-x-2">
             <Button
               variant={chartType === "line" ? "default" : "outline"}
               size="sm"
@@ -389,7 +485,7 @@ export default function Dashboard() {
             <Button variant={chartType === "bar" ? "default" : "outline"} size="sm" onClick={() => setChartType("bar")}>
               <BarChart2 className="h-4 w-4" />
             </Button>
-          </div>
+          </div> */}
         </div>
 
         <TabsContent value="combined" className="mt-0">

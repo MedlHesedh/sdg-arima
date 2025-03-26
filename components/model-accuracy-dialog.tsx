@@ -81,10 +81,10 @@ export function ModelAccuracyDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="py-2 space-y-2">
+          <div className="grid grid-cols-1 md:space-y-2 gap-4">
             <Card>
-              <CardContent className="pt-6">
+              <CardContent className="pt-.5">
                 <div className="text-sm text-muted-foreground">Mean Absolute Percentage Error (MAPE)</div>
                 <div className="text-2xl font-bold">{metrics.mape.toFixed(2)}%</div>
                 <div className="text-xs text-muted-foreground mt-1">
@@ -92,7 +92,7 @@ export function ModelAccuracyDialog({
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            {/* <Card>
               <CardContent className="pt-6">
                 <div className="text-sm text-muted-foreground">Root Mean Square Error (RMSE)</div>
                 <div className="text-2xl font-bold">${metrics.rmse.toFixed(2)}</div>
@@ -100,7 +100,7 @@ export function ModelAccuracyDialog({
                   Lower is better. Represents magnitude of error.
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           <div className="rounded-md border">
@@ -145,10 +145,10 @@ export function ModelAccuracyDialog({
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={handleExportAccuracy} variant="outline">
+            {/* <Button onClick={handleExportAccuracy} variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Export Accuracy Data
-            </Button>
+            </Button> */}
           </div>
         </div>
       </DialogContent>
